@@ -1,3 +1,8 @@
+# https://github.com/github/gitignore/blob/master/R.gitignore
+
+# RStudio temporary files
+.Rproj.user/
+
 # History files
 .Rhistory
 .Rapp.history
@@ -35,5 +40,13 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 
-# R Environment Variables
-.Renviron
+# Omit folders created by building vignettes.
+doc
+Meta
+inst/doc
+
+# Omit actual data files from GitHub, but allow tracking the text file
+# we use to automate creation of the `data` folder.
+data/*.Rdata
+data/*.Rds
+
