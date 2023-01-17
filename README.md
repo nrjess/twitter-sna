@@ -5,7 +5,7 @@ Nicole Jess & Yuqing Liu
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 This GitHub repository is intended to create social network datasets
-based on data scraped from twitter and demonstrate some useful tools for
+based on data scraped from twitter and provide some useful tools for
 analysis.
 
 ## Obtain the Repository from GitHub
@@ -46,11 +46,6 @@ project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-P
     The unintuitive name for this folder is a result of R package
     building conventions (it is where you put files that should be
     installed with the package).
-    - `Example_Script.Rmd`: This .Rmd file serves as a basic template
-      for new .Rmd scripts that we want to render PDF output. It sets up
-      some standard formatting and LaTeX packages we will likely need.
-    - `Example_Script.html`: This file will be created if you knit the
-      `Example_Script.Rmd` file. It is not tracked by Git.
   - `.gitignore`: This file tells Git what files to ignore and omit from
     synchronizing with the main repository on GitHub.
   - `DESCRIPTION`: This file is a brief, structured description of the
