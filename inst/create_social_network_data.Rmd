@@ -75,7 +75,16 @@ replies <- t2 %>%
 retweets<- t2$retweeted_status %>%
   map("user") %>%
   map_df(bind_rows) %>%
-  drop_na(id_str)
+  mutate(tweet_id=t2$id_str,
+         text=t2$full_text,
+         created_at=t2$created_at,
+         edge_type="retweets") %>%
+  drop_na(id_str) %>%
+  left_join(tweet_authors, by=c("tweet_id"="id")) %>%
+  rename(from=author_id,
+         to=id_str) %>%
+  select(tweet_id, created_at, from, to, text, edge_type)
+
 
 ```
 
@@ -85,21 +94,44 @@ retweets<- t2$retweeted_status %>%
 quotes<- t2$quoted_status %>%
   map("user") %>%
   map_df(bind_rows) %>%
-  drop_na(id_str)
+  mutate(tweet_id=t2$id_str,
+         text=t2$full_text,
+         created_at=t2$created_at,
+         edge_type="quotes") %>%
+  drop_na(id_str) %>%
+  left_join(tweet_authors, by=c("tweet_id"="id")) %>%
+  rename(from=author_id,
+         to=id_str) %>%
+  select(tweet_id, created_at, from, to, text, edge_type)
 
 ```
 
 ## Mentions
-```{r mention-edges, eval=F}
+```{r mention-edges}
 
-
+mentions <- t2$entities %>%
+  map("user_mentions") %>%
+  map("id_str") %>%
+  plyr::ldply(rbind) %>%
+  mutate(tweet_id=t2$id_str,
+         text=t2$full_text,
+         created_at=t2$created_at,
+         edge_type="mentions") %>%
+  pivot_longer(-c("tweet_id","text","created_at","edge_type"), values_to="to") %>%
+  drop_na(to) %>%
+  left_join(tweet_authors, by=c("tweet_id"="id")) %>%
+  rename(from=author_id) %>%
+  select(tweet_id, created_at, from, to, text, edge_type)  
 
 ```
 
 ## Combine edge types
 ```{r all-edges}
 
-edgelist <- bind_rows(replies)
+edgelist <- bind_rows(replies,
+                      retweets,
+                      quotes,
+                      mentions)
 
 ```
 

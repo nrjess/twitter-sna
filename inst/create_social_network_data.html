@@ -1561,7 +1561,7 @@ border-radius: 0px;
 
 <h1 class="title toc-ignore">Creating Social Network Datasets</h1>
 <h4 class="author">Nicole Jess, Yuqing Liu</h4>
-<h4 class="date">2023-01-17, 12:30:36 EST</h4>
+<h4 class="date">2023-01-17, 15:37:49 EST</h4>
 
 </div>
 
@@ -1610,7 +1610,15 @@ load(file=here(&quot;data/tweet_authors.RData&quot;))</code></pre>
 <pre class="r"><code>retweets&lt;- t2$retweeted_status %&gt;%
   map(&quot;user&quot;) %&gt;%
   map_df(bind_rows) %&gt;%
-  drop_na(id_str)</code></pre>
+  mutate(tweet_id=t2$id_str,
+         text=t2$full_text,
+         created_at=t2$created_at,
+         edge_type=&quot;retweets&quot;) %&gt;%
+  drop_na(id_str) %&gt;%
+  left_join(tweet_authors, by=c(&quot;tweet_id&quot;=&quot;id&quot;)) %&gt;%
+  rename(from=author_id,
+         to=id_str) %&gt;%
+  select(tweet_id, created_at, from, to, text, edge_type)</code></pre>
 <p></p>
 </div>
 <div id="quotes" class="section level2" number="4.3">
@@ -1619,18 +1627,42 @@ load(file=here(&quot;data/tweet_authors.RData&quot;))</code></pre>
 <pre class="r"><code>quotes&lt;- t2$quoted_status %&gt;%
   map(&quot;user&quot;) %&gt;%
   map_df(bind_rows) %&gt;%
-  drop_na(id_str)</code></pre>
+  mutate(tweet_id=t2$id_str,
+         text=t2$full_text,
+         created_at=t2$created_at,
+         edge_type=&quot;quotes&quot;) %&gt;%
+  drop_na(id_str) %&gt;%
+  left_join(tweet_authors, by=c(&quot;tweet_id&quot;=&quot;id&quot;)) %&gt;%
+  rename(from=author_id,
+         to=id_str) %&gt;%
+  select(tweet_id, created_at, from, to, text, edge_type)</code></pre>
 <p></p>
 </div>
 <div id="mentions" class="section level2" number="4.4">
 <h2><span class="header-section-number">4.4</span> Mentions</h2>
 <p></p>
+<pre class="r"><code>mentions &lt;- t2$entities %&gt;%
+  map(&quot;user_mentions&quot;) %&gt;%
+  map(&quot;id_str&quot;) %&gt;%
+  plyr::ldply(rbind) %&gt;%
+  mutate(tweet_id=t2$id_str,
+         text=t2$full_text,
+         created_at=t2$created_at,
+         edge_type=&quot;mentions&quot;) %&gt;%
+  pivot_longer(-c(&quot;tweet_id&quot;,&quot;text&quot;,&quot;created_at&quot;,&quot;edge_type&quot;), values_to=&quot;to&quot;) %&gt;%
+  drop_na(to) %&gt;%
+  left_join(tweet_authors, by=c(&quot;tweet_id&quot;=&quot;id&quot;)) %&gt;%
+  rename(from=author_id) %&gt;%
+  select(tweet_id, created_at, from, to, text, edge_type)  </code></pre>
 <p></p>
 </div>
 <div id="combine-edge-types" class="section level2" number="4.5">
 <h2><span class="header-section-number">4.5</span> Combine edge types</h2>
 <p></p>
-<pre class="r"><code>edgelist &lt;- bind_rows(replies)</code></pre>
+<pre class="r"><code>edgelist &lt;- bind_rows(replies,
+                      retweets,
+                      quotes,
+                      mentions)</code></pre>
 <p></p>
 </div>
 </div>
@@ -1654,7 +1686,46 @@ load(file=here(&quot;data/tweet_authors.RData&quot;))</code></pre>
 ## Processing from 801 to 900
 ## Processing from 901 to 1000
 ## Processing from 1001 to 1100
-## Processing from 1101 to 1112</code></pre>
+## Processing from 1101 to 1200
+## Processing from 1201 to 1300
+## Processing from 1301 to 1400
+## Processing from 1401 to 1500
+## Processing from 1501 to 1600
+## Processing from 1601 to 1700
+## Processing from 1701 to 1800
+## Processing from 1801 to 1900
+## Processing from 1901 to 2000
+## Processing from 2001 to 2100
+## Processing from 2101 to 2200
+## Processing from 2201 to 2300
+## Processing from 2301 to 2400
+## Processing from 2401 to 2500
+## Processing from 2501 to 2600
+## Processing from 2601 to 2700
+## Processing from 2701 to 2800
+## Processing from 2801 to 2900
+## Processing from 2901 to 3000
+## Processing from 3001 to 3100
+## Processing from 3101 to 3200
+## Processing from 3201 to 3300
+## Processing from 3301 to 3400
+## Processing from 3401 to 3500
+## Processing from 3501 to 3600
+## Processing from 3601 to 3700
+## Processing from 3701 to 3800
+## Processing from 3801 to 3900
+## Processing from 3901 to 4000
+## Processing from 4001 to 4100
+## Processing from 4101 to 4200
+## Processing from 4201 to 4300
+## Processing from 4301 to 4400
+## Processing from 4401 to 4500
+## Processing from 4501 to 4600
+## Processing from 4601 to 4700
+## Processing from 4701 to 4800
+## Processing from 4801 to 4900
+## Processing from 4901 to 5000
+## Processing from 5001 to 5039</code></pre>
 <p></p>
 </div>
 </div>
