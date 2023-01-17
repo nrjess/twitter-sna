@@ -92,17 +92,21 @@ your bearer token in your command history.
 Running the code below opens the .Renviron file and provides
 instructions on how to add the bearer token, which requires the addition
 of a line in the .Renviron file, following the format:
-TWITTER_BEARER=YOURTOKENHERE
+TWITTER_BEARER=YOURTOKENHERE.
 
 ``` r
 library(academictwitteR)
 set_bearer()
 ```
 
+Save the changes to the environment and close. Go to Session and Restart
+R.
+
 Now you will have a system environment variable in memory that contains
 your bearer token. You can retrieve it using the following command.
 
 ``` r
+library(academictwitteR)
 get_bearer()
 ```
 
