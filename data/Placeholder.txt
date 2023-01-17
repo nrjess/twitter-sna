@@ -1,0 +1,1 @@
+Tracking this file in Git automates creating the folder it is in when the repository is cloned.
