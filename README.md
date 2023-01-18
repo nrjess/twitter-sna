@@ -146,3 +146,11 @@ control? *The American Statistician, 72*(1), 20-27.
 
 Bryan, J., The STAT 545 TAs, & Hester, J. (n.d.). *Happy Git and GitHub
 for the useR*. <https://happygitwithr.com>
+
+Mair, P. (2016). Thou shalt be reproducible! A technology perspective.
+Frontiers in Psychology, 7(1079), 1-17.
+<http://dx.doi.org/10.3389/fpsyg.2016.01079>
+
+Torvalds, L., Hamano, J. C., & other contributors to the Git Project.
+(2022). Git for Windows (Version 2.37.1) \[Computer program\]. Brooklyn,
+NY: Software Freedom Conservancy. Retrieved from <https://git-scm.com>
