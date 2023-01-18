@@ -134,7 +134,7 @@ This section lists and briefly describes the scripts in the *twitter-sna* reposi
 We use R Markdown to enhance reproducibility because it provides excellent 
 support for generating dynamic reports (Mair, 2016). Knitting the source R 
 Markdown script *`r knitr:::current_input()`* generates this Markdown file.
-Knitting our other R Markdown scripts from this package generates PDF output 
+Knitting our other R Markdown scripts from this repository generates HTML output 
 files containing explanatory text, R code, plus R output (both text and 
 graphics).
 

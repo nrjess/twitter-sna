@@ -125,9 +125,9 @@ This section lists and briefly describes the scripts in the
 We use R Markdown to enhance reproducibility because it provides
 excellent support for generating dynamic reports (Mair, 2016). Knitting
 the source R Markdown script *README.Rmd* generates this Markdown file.
-Knitting our other R Markdown scripts from this package generates PDF
-output files containing explanatory text, R code, plus R output (both
-text and graphics).
+Knitting our other R Markdown scripts from this repository generates
+HTML output files containing explanatory text, R code, plus R output
+(both text and graphics).
 
 - We use [RStudio](www.rstudio.org) to work with R and R markdown files.
   The software chain that connects scripts to output files depends on
