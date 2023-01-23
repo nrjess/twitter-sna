@@ -41,11 +41,8 @@ project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-P
       the `data` subfolder will be created when you clone the repository
       or extract files from ZIP file copy of the repository obtained
       from GitHub.
-  - `inst`: This folder is where you can find the key files you will
+  - `scripts`: This folder is where you can find the key files you will
     need to use if you want to re-run our analyses on your own computer.
-    The unintuitive name for this folder is a result of R package
-    building conventions (it is where you put files that should be
-    installed with the package).
   - `.gitignore`: This file tells Git what files to ignore and omit from
     synchronizing with the main repository on GitHub.
   - `DESCRIPTION`: This file is a brief, structured description of the
