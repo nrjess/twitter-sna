@@ -1,0 +1,214 @@
+---
+title: "Scraping Tweets"
+author: "Nicole Jess, Yuqing Liu"
+date: "`r format(Sys.time(), '%Y-%m-%d, %H:%M:%S %Z')`"
+output: 
+  bookdown::html_document2:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+    code_folding:  hide
+params: 
+  outfile: "scrape_tweets.html"
+---
+
+# Purpose
+The script scrapes Twitter based on parameters defined by the user and saves a 
+copy to an .RData file stored in the local repository where we can easily access 
+it from other scripts.
+
+```{r global-options, include=FALSE}
+# Create a custom chunk hook/option for controlling font size in chunk & output.
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  ifelse(options$cfsize != "normalsize", paste0("\n \\", options$cfsize,"\n\n", 
+                                              x, "\n\n \\normalsize"), x)
+  })
+
+# Global chunk options (over-ridden by local chunk options)
+knitr::opts_chunk$set(include  = TRUE, echo = TRUE, error = TRUE, 
+                      message = FALSE, warning = FALSE, 
+                      cfsize = "footnotesize", fig.height=8)
+
+# Declare location of this script relative to the project root directory.
+here::i_am(path = "scripts/scrape_tweets.Rmd")
+```
+
+# Load R Packages
+Load contributed R packages that we need to get additional functions. 
+
+``` {r load-packages}
+library(tidyverse)          # dplyr, ggplot2, tidyr, etc.
+library(here)               # for here()
+library(academictwitteR)    # for build_query(), count_all_tweets(), get_all_tweets(), get_bearer()
+library(rtweet)             # for rtweet_app(), auth_as(), lookup_tweets()
+library(knitr)              # for kable()
+library(lubridate)          # for floor_date()
+```
+
+
+# Define your query
+
+Multiple keywords can be used as shown:
+
+* query = c("cat", "dog") returns tweets that contain the word "cat" or the word "dog"
+* query = c("cat dog") returns tweets that contain both words 
+
+The query can also be restricted by users, exclude keywords, and filter by tweet 
+types. Full list of options shown here: [build_query](https://rdrr.io/cran/academictwitteR/man/build_query.html)
+
+``` {r query}
+# define hashtags/keywords
+# "," means "or"
+# " " means "and"
+query1 <- build_query(query = c("school vouchers", "#schoolchoice"))
+
+# define time intervals
+# time interval used to measure 'before' sentiment
+time_interval1 <- data.frame(start = "2022-04-01T00:00:00Z",
+                             end = "2022-04-11T00:00:00Z")
+# time interval used to create edgelist
+time_interval2 <- data.frame(start = "2022-04-11T00:00:00Z",
+                             end = "2022-04-21T00:00:00Z")
+# time interval used to measure 'after' sentiment
+time_interval3 <- data.frame(start = "2022-04-21T00:00:00Z",
+                             end = "2022-05-01T00:00:00Z")
+```
+
+
+## Check tweet counts
+
+```{r total-tweets}
+# how many tweets will this query yield?
+count.tweets <- count_all_tweets(query = c(query1),
+                                 start_tweets=time_interval1$start,
+                                 end_tweets=time_interval3$end,
+                                 get_bearer(),
+                                 n=Inf,
+                                 verbose=FALSE)
+
+```
+
+The total number of tweets scraped in this query is `r sum(count.tweets$tweet_count)`.
+
+Table \@ref(tab:tweets-by-interval) shows the number of tweets that fall into each of the time intervals and Figure \@ref(fig:timeseries-plot) shows the number of tweets plotted over time.
+
+```{r tweets-by-interval}
+tab <- count.tweets %>%
+  mutate(time_interval=case_when((start < time_interval1$end)~1,
+                                 (start >= time_interval2$start & start < time_interval2$end)~2,
+                                 (start >= time_interval3$start)~3)) %>%
+  group_by(time_interval) %>%
+  summarize(tweet_count=sum(tweet_count))
+
+TC <- paste0("Number of tweets by time interval ")
+
+kable(tab,
+      col.names=c("interval","number of tweets"),
+      caption=TC)
+```
+
+```{r timeseries-plot, fig.width=7, fig.height=4, fig.cap=FC}
+
+# Figure caption
+FC <- paste0("\\label{fig:timeseries-plot}",
+            "Timeseries plot of tweets over time ")
+
+ggplot(data = count.tweets,
+       aes(x=as.Date(end), y=tweet_count, group=1)) +
+  geom_line() +
+  geom_vline(xintercept=c(as.Date(time_interval2$start),
+                          as.Date(time_interval3$start)),
+             linetype=2,
+             color="red") +
+  labs(x="Date", y="number of tweets") +
+  scale_x_date(date_breaks = "1 week",
+               date_labels = "%m-%d-%Y") +
+  theme_classic()
+```
+
+
+# Scrape tweets
+```{r tweet-scrape}
+tweets <- get_all_tweets(query = c(query1),
+                         start_tweets=time_interval1$start,
+                         end_tweets=time_interval3$end,
+                         get_bearer(),
+                         n=Inf) # default is n=100 (pulls 100 most recent tweets), set to n=Inf to get all the tweets
+
+# auth for rtweet package using stored bearer token
+auth <- rtweet_app(bearer_token = get_bearer())
+
+tweets_processed <- lookup_tweets(tweets$id,
+                                  retryonratelimit=TRUE,
+                                  token=auth_as(auth))
+
+```
+
+```{r split-time-intervals}
+t1 <- tweets_processed %>%
+  filter((created_at > time_interval1$start) & (created_at <= time_interval1$end))
+
+t2 <- tweets_processed %>%
+  filter((created_at > time_interval2$start) & (created_at <= time_interval2$end))
+
+t3 <- tweets_processed %>%
+  filter((created_at > time_interval3$start) & (created_at <= time_interval3$end))
+```
+
+
+## Keyword usage
+
+Figure \@ref(fig:keyword-plot) shows the number of tweets plotted over time.
+
+```{r keyword-plot, fig.width=7, fig.height=4, fig.cap=FC}
+tab1 <- tweets_processed %>%
+  mutate(day = floor_date(created_at, "day"),
+         `#charterschool`= if_else(grepl("charter school", text), 1, 0),
+         `#schoolchoice`= if_else(grepl("#schoolchoice", text), 1, 0)) %>%
+  pivot_longer(cols=starts_with("#"),
+               names_to = "keyword",
+               values_to = "keyword_used",
+               values_drop_na = TRUE) %>%
+  group_by(day, keyword) %>%
+  summarize(count = sum(keyword_used))
+
+FC <- paste0("\\label{fig:keyword-plot}",
+            "Use of keywords over time ")
+
+ggplot(data = tab1,
+       aes(x=as.Date(day), y=count, color=keyword)) +
+  geom_line() +
+  geom_vline(xintercept=c(as.Date(time_interval2$start),
+                          as.Date(time_interval3$start)),
+             linetype=2,
+             color="red") +
+  labs(title="Use of keywords over time", x="Date",y="number of tweets") +
+  scale_x_date(date_breaks = "6 days",
+               date_labels = "%m-%d-%Y") +
+  theme_classic() +
+  theme(legend.title = element_blank())
+```
+
+
+``` {r tweet_attributes}
+tweet_authors <- tweets %>%
+  select(id, author_id)
+
+```
+
+# Save Data
+
+```{r save-data}
+# here() creates a path relative to the location of the twitter-sna.proj file
+# that will be portable across local repositories on different computers.
+
+save(t1, file=here("data/t1.RData"))
+save(t2, file=here("data/t2.RData"))
+save(t3, file=here("data/t3.RData"))
+save(tweet_authors, file=here("data/tweet_authors.RData"))
+
+```
+

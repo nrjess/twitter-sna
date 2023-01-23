@@ -1,0 +1,160 @@
+---
+title: "Creating Social Network Datasets"
+author: "Nicole Jess, Yuqing Liu"
+date: "`r format(Sys.time(), '%Y-%m-%d, %H:%M:%S %Z')`"
+output: 
+  bookdown::html_document2:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+    code_folding:  hide
+params: 
+  outfile: "create-social-network-data.html"
+---
+
+# Purpose
+The script restructures data scraped from twitter into a format that can be used for social network analysis.
+
+```{r global-options, include=FALSE}
+# Create a custom chunk hook/option for controlling font size in chunk & output.
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  ifelse(options$cfsize != "normalsize", paste0("\n \\", options$cfsize,"\n\n", 
+                                              x, "\n\n \\normalsize"), x)
+  })
+
+# Global chunk options (over-ridden by local chunk options)
+knitr::opts_chunk$set(include  = TRUE, echo = TRUE, error = TRUE, 
+                      message = FALSE, warning = FALSE, 
+                      cfsize = "footnotesize", fig.height=8)
+
+# Declare location of this script relative to the project root directory.
+here::i_am(path = "scripts/create_social_network_data.Rmd")
+```
+
+# Load R Packages
+Load contributed R packages that we need to get additional functions. 
+
+``` {r load-packages}
+library(tidyverse)          # dplyr, ggplot2, tidyr, etc.
+library(here)               # for here()
+library(academictwitteR)    # for get_user_profile()
+
+```
+
+# Load data
+
+``` {r load-data}
+# Data file created by "scripts/scrape_tweets.Rmd"
+load(file=here("data/t2.RData"))
+load(file=here("data/tweet_authors.RData"))
+```
+
+# Edgelist
+
+## Replys
+```{r reply-edges}
+replies <- t2 %>%
+  select(id_str, created_at, in_reply_to_user_id_str, full_text) %>%
+  drop_na() %>%
+  mutate(edge_type="reply") %>%
+  left_join(tweet_authors, by=c("id_str"="id")) %>%
+  rename(tweet_id=id_str,
+         from=author_id,
+         to=in_reply_to_user_id_str,
+         text=full_text) %>%
+  relocate(tweet_id, created_at, from, to, text, edge_type)
+
+```
+
+## Retweets
+```{r retweet-edges}
+
+retweets<- t2$retweeted_status %>%
+  map("user") %>%
+  map_df(bind_rows) %>%
+  mutate(tweet_id=t2$id_str,
+         text=t2$full_text,
+         created_at=t2$created_at,
+         edge_type="retweets") %>%
+  drop_na(id_str) %>%
+  left_join(tweet_authors, by=c("tweet_id"="id")) %>%
+  rename(from=author_id,
+         to=id_str) %>%
+  select(tweet_id, created_at, from, to, text, edge_type)
+
+
+```
+
+## Quotes
+```{r quote-edges}
+
+quotes<- t2$quoted_status %>%
+  map("user") %>%
+  map_df(bind_rows) %>%
+  mutate(tweet_id=t2$id_str,
+         text=t2$full_text,
+         created_at=t2$created_at,
+         edge_type="quotes") %>%
+  drop_na(id_str) %>%
+  left_join(tweet_authors, by=c("tweet_id"="id")) %>%
+  rename(from=author_id,
+         to=id_str) %>%
+  select(tweet_id, created_at, from, to, text, edge_type)
+
+```
+
+## Mentions
+```{r mention-edges}
+
+mentions <- t2$entities %>%
+  map("user_mentions") %>%
+  map("id_str") %>%
+  plyr::ldply(rbind) %>%
+  mutate(tweet_id=t2$id_str,
+         text=t2$full_text,
+         created_at=t2$created_at,
+         edge_type="mentions") %>%
+  pivot_longer(-c("tweet_id","text","created_at","edge_type"), values_to="to") %>%
+  drop_na(to) %>%
+  left_join(tweet_authors, by=c("tweet_id"="id")) %>%
+  rename(from=author_id) %>%
+  select(tweet_id, created_at, from, to, text, edge_type)  
+
+```
+
+## Combine edge types
+```{r all-edges}
+
+edgelist <- bind_rows(replies,
+                      retweets,
+                      quotes,
+                      mentions)
+
+```
+
+
+# Nodelist
+
+## Scrape profiles
+```{r profile-scrape}
+nodelist <- c(edgelist$from, edgelist$to) %>%
+  unique() %>%
+  get_user_profile(get_bearer()) %>%
+  select(-starts_with("entities"))
+
+```
+
+# Save Data
+
+## T2 edges and nodes
+```{r save-t2-data}
+# here() creates a path relative to the location of the twitter-sna.proj file
+# that will be portable across local repositories on different computers.
+
+save(edgelist, file=here("data/twitter_edges.RData"))
+save(nodelist, file=here("data/twitter_nodes.RData"))
+
+```
