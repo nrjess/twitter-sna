@@ -1,0 +1,44 @@
+---
+title: "Sentiment Analysis"
+author: "Nicole Jess, Yuqing Liu"
+date: "`r format(Sys.time(), '%Y-%m-%d, %H:%M:%S %Z')`"
+output: 
+  bookdown::html_document2:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+    code_folding:  hide
+params: 
+  outfile: "sentiment_analysis.html"
+---
+
+# Purpose
+
+
+```{r global-options, include=FALSE}
+# Create a custom chunk hook/option for controlling font size in chunk & output.
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  ifelse(options$cfsize != "normalsize", paste0("\n \\", options$cfsize,"\n\n", 
+                                              x, "\n\n \\normalsize"), x)
+  })
+
+# Global chunk options (over-ridden by local chunk options)
+knitr::opts_chunk$set(include  = TRUE, echo = TRUE, error = TRUE, 
+                      message = FALSE, warning = FALSE, 
+                      cfsize = "footnotesize", fig.height=8)
+
+# Declare location of this script relative to the project root directory.
+here::i_am(path = "scripts/scrape_tweets.Rmd")
+```
+
+# Load R Packages
+Load contributed R packages that we need to get additional functions. 
+
+``` {r load-packages}
+library(tidyverse)          # dplyr, ggplot2, tidyr, etc.
+library(here)               # for here()
+
+```
