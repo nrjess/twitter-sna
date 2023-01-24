@@ -8,7 +8,7 @@ output:
     toc_depth: 3
     toc_float: true
     number_sections: true
-    code_folding:  hide
+    code_folding:  show
 params: 
   outfile: "create-social-network-data.html"
 ---
@@ -40,9 +40,10 @@ Load contributed R packages that we need to get additional functions.
 ``` {r load-packages}
 library(tidyverse)          # dplyr, ggplot2, tidyr, etc.
 library(here)               # for here()
+library(knitr)              # for kable()
 library(academictwitteR)    # for get_user_profile()
 library(linkcomm)           # for integer.edgelist()
-library(igraph)
+library(igraph)             # for graph_from_data_frame()
 
 ```
 
@@ -57,11 +58,12 @@ load(file=here("data/tweet_authors.RData"))
 # Edgelist
 
 ## Replys
+
 ```{r reply-edges}
 replies <- t2 %>%
   select(id_str, created_at, in_reply_to_user_id_str, full_text) %>%
   drop_na() %>%
-  mutate(edge_type="reply") %>%
+  mutate(edge_type="replies") %>%
   left_join(tweet_authors, by=c("id_str"="id")) %>%
   rename(tweet_id=id_str,
          from=author_id,
@@ -108,6 +110,7 @@ quotes<- t2$quoted_status %>%
 
 ```
 
+
 ## Mentions
 ```{r mention-edges}
 
@@ -129,7 +132,7 @@ mentions <- t2$entities %>%
 
 ## Combine edge types
 
-You can remove edge types that you are not interested in. For example, if you do not want to include replies, delete "replies" from the list below.
+You can remove edge types that are not of interest for your project. For example, if you do not want replies to be counted as edges in your network, delete "replies" from the code below.
 
 ```{r all-edges}
 
@@ -140,7 +143,23 @@ edgelist <- bind_rows(replies,
 
 ```
 
+Altogether, this gives us a total of `r nrow(edgelist)` edges in this network. Table \@ref(tab:edges-table) shows the total number of each edge type in this network.
+
+```{r edges-table}
+
+TC <- paste0("Total edges by edge type ")
+
+table(edgelist$edge_type) %>%
+  addmargins(1,sum) %>%
+  kable(col.names=c("edge type","n"),
+        caption=TC)
+
+
+```
+
 # Integer edgelist
+
+Some of the tools we work with require that the edge IDs are integers starting with 1. This code creates and edgelist that meets these requirements.
 
 ```{r integer-edges}
 
@@ -175,14 +194,15 @@ outdegree <- edges %>%
 
 # Nodelist
 
-## Scrape profiles
+This code creates a list of all the nodes in the network and scrapes data from the Twitter user profiles. 
+
 ```{r profile-scrape}
 nodelist <- c(edgelist$from, edgelist$to) %>%
   unique() %>%
   get_user_profile(get_bearer()) %>%
   select(-starts_with("entities"))
 
-# integer IDs to node attributes
+# match integer IDs to node attributes
 nodes <- network1$nodes %>%
   as.data.frame() %>%
   rename(nodes = 1) %>%
@@ -192,6 +212,19 @@ nodes <- network1$nodes %>%
   left_join(outdegree, by=c("nodes"="from")) %>%
   mutate_at(vars(c(indegree,outdegree)), ~replace(., is.na(.), 0)) %>%
   mutate(degree = indegree + outdegree)
+
+
+```
+
+
+# Testing an *igraph* object
+
+This code creates and plots an *igraph* object to test that the integer edgelist works properly. Figure \@ref(fig:igraph) probably doesn't look very nice but for this script we just want to confirm that we are able to make a graph. Other scripts in this repository have code for making better graphs.
+
+```{r igraph, fig.width=7, fig.height=4, fig.cap=FC}
+
+FC <- paste0("\\label{fig:igraph}",
+            "Plot of network ")
 
 # create an igraph object
 net1 <- graph_from_data_frame(d = edges,
@@ -205,7 +238,6 @@ plot(net1)
 
 # Save Data
 
-## T2 edges and nodes
 ```{r save-t2-data}
 # here() creates a path relative to the location of the twitter-sna.proj file
 # that will be portable across local repositories on different computers.
