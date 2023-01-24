@@ -41,6 +41,8 @@ Load contributed R packages that we need to get additional functions.
 library(tidyverse)          # dplyr, ggplot2, tidyr, etc.
 library(here)               # for here()
 library(academictwitteR)    # for get_user_profile()
+library(linkcomm)           # for integer.edgelist()
+library(igraph)
 
 ```
 
@@ -126,12 +128,47 @@ mentions <- t2$entities %>%
 ```
 
 ## Combine edge types
+
+You can remove edge types that you are not interested in. For example, if you do not want to include replies, delete "replies" from the list below.
+
 ```{r all-edges}
 
 edgelist <- bind_rows(replies,
                       retweets,
                       quotes,
                       mentions)
+
+```
+
+# Integer edgelist
+
+```{r integer-edges}
+
+# integer edgelist
+network1 <- edgelist %>%
+  select(from,to) %>%
+  as.matrix() %>%
+  integer.edgelist()
+
+edges <- network1$edges %>%
+  as.data.frame() %>%
+  rename(from = V1,
+         to = V2) %>%
+  group_by(from,to) %>%
+  summarize(weight = n()) %>%
+  filter(from != to) %>%    # remove self-ties
+  as.data.frame()
+
+# save indegree and outdegree to use as node attributes
+indegree <- edges %>%
+  group_by(to) %>%
+  summarize(indegree=n()) %>%
+  as.data.frame()
+
+outdegree <- edges %>%
+  group_by(from) %>%
+  summarize(outdegree=n()) %>%
+  as.data.frame()
 
 ```
 
@@ -145,7 +182,26 @@ nodelist <- c(edgelist$from, edgelist$to) %>%
   get_user_profile(get_bearer()) %>%
   select(-starts_with("entities"))
 
+# integer IDs to node attributes
+nodes <- network1$nodes %>%
+  as.data.frame() %>%
+  rename(nodes = 1) %>%
+  mutate(id = rownames(.)) %>%
+  left_join(nodelist, by="id") %>%
+  left_join(indegree, by=c("nodes"="to")) %>%
+  left_join(outdegree, by=c("nodes"="from")) %>%
+  mutate_at(vars(c(indegree,outdegree)), ~replace(., is.na(.), 0)) %>%
+  mutate(degree = indegree + outdegree)
+
+# create an igraph object
+net1 <- graph_from_data_frame(d = edges,
+                              vertices = nodes,
+                              directed = TRUE)
+
+plot(net1)
+
 ```
+
 
 # Save Data
 
@@ -156,5 +212,7 @@ nodelist <- c(edgelist$from, edgelist$to) %>%
 
 save(edgelist, file=here("data/twitter_edges.RData"))
 save(nodelist, file=here("data/twitter_nodes.RData"))
+save(edges, file=here("data/int_edges.RData"))
+save(nodes, file=here("data/int_nodes.RData"))
 
 ```
