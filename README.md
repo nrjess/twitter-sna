@@ -22,10 +22,10 @@ folder. Either way, the files should end up in a folder called
 `twitter-sna` on your computer. That folder is your local copy of the
 repository.
 
-Note that the package code uses relative rather than absolute folder
-path and file name references. Moving or renaming subfolders and/or
-files may cause problems. We have tested it only with the folder
-structure and file naming used in the primary repository on GitHub.
+Note that the code uses relative rather than absolute folder path and
+file name references. Moving or renaming subfolders and/or files may
+cause problems. We have tested it only with the folder structure and
+file naming used in the primary repository on GitHub.
 
 ## Understanding the Repository Structure and Contents
 
@@ -42,17 +42,13 @@ project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-P
       or extract files from ZIP file copy of the repository obtained
       from GitHub.
   - `scripts`: This folder is where you can find the key files you will
-    need to use if you want to re-run our analyses on your own computer.
+    need to use if you want to run these analyses on your own computer.
   - `.gitignore`: This file tells Git what files to ignore and omit from
     synchronizing with the main repository on GitHub.
-  - `DESCRIPTION`: This file is a brief, structured description of the
-    package that is required by R package building conventions. It holds
-    essential meta-data.
   - `LICENSE`: This file contains the terms of the license that applies
     to all source code in this repository.
   - `README.md`: This file is obtained by knitting the `README.Rmd` file
-    and is used by GitHub to display information about the package. Do
-    not edit it manually: just re-knit `README.Rmd` to update it. In R
+    and is used by GitHub to display information about the package. In R
     Studio, you can read the formatted version by opening the file and
     clicking the Preview button.
   - `README.Rmd`: This file gives an introduction to the package.
@@ -89,7 +85,7 @@ your bearer token in your command history.
 Running the code below opens the .Renviron file and provides
 instructions on how to add the bearer token, which requires the addition
 of a line in the .Renviron file, following the format:
-TWITTER_BEARER=YOURTOKENHERE.
+TWITTER_BEARER=YOURTOKENHERE
 
 ``` r
 library(academictwitteR)
