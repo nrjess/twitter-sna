@@ -53,9 +53,6 @@ The repository is set up as an
       use if you want to re-run our analyses on your own computer.
     * `.gitignore`: This file tells Git what files to ignore and omit from 
       synchronizing with the main repository on GitHub. 
-    * `DESCRIPTION`: This file is a brief, structured description of the package
-      that is required by R package building conventions. It holds essential 
-      meta-data. 
     * `LICENSE`: This file contains the terms of the license that applies to all 
       source code in this repository.
     * `README.md`: This file is obtained by knitting the `README.Rmd` file and 
