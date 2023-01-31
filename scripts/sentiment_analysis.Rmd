@@ -31,7 +31,7 @@ knitr::opts_chunk$set(include  = TRUE, echo = TRUE, error = TRUE,
                       cfsize = "footnotesize", fig.height=8)
 
 # Declare location of this script relative to the project root directory.
-here::i_am(path = "scripts/scrape_tweets.Rmd")
+here::i_am(path = "scripts/sentiment_analysis.Rmd")
 ```
 
 # Load R Packages
@@ -42,3 +42,42 @@ library(tidyverse)          # dplyr, ggplot2, tidyr, etc.
 library(here)               # for here()
 
 ```
+
+# Load data
+
+``` {r load-data}
+# Data file created by "scripts/create_social_network_data.Rmd"
+load(file=here("data/t1.RData"))
+load(file=here("data/t3.RData"))
+
+```
+
+```{r data-prep}
+
+# prep for sentiment analysis
+t1.tweets <-  t1 %>% 
+  filter(lang == "en") %>%
+  select(nominator = id_str, created_at, text = full_text)
+
+t3.tweets <-  t3 %>% 
+  filter(lang == "en") %>%
+  select(nominator = id_str, created_at, text = full_text)
+
+# Exclude URL patterns in Text
+t1.tweets$text <- gsub("http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", "" ,t1.tweets$text)
+t3.tweets$text <- gsub("http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", "" ,t3.tweets$text)
+
+# Exclude @user patterns in Text
+t1.tweets$text <- gsub("@\\w+", "" ,t1.tweets$text)
+t3.tweets$text <- gsub("@\\w+", "" ,t3.tweets$text)
+
+# Exclude hashtags patterns in Text
+t1.tweets$text <- gsub("#\\w+", "" ,t1.tweets$text)
+t3.tweets$text <- gsub("#\\w+", "" ,t3.tweets$text)
+
+#To make each word a cell row with the corresponding nominator
+t1.byword <- tidytext::unnest_tokens(t1.tweets, output = word, input = text)
+t3.byword <- tidytext::unnest_tokens(t3.tweets, output = word, input = text)
+
+```
+
