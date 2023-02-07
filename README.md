@@ -14,7 +14,7 @@ If you use Git (Torvalds et al., 2022) and have a GitHub account, either
 clone or fork and clone the package to your computer using the usual Git
 commands (Bryan, 2018; Bryan et al., n.d., Chapter 16). We suggest the
 method shown in [Section
-16.2](https://happygitwithr.com/existing-github-first.html#rstudio-ide-1).
+16.2.2](https://happygitwithr.com/existing-github-first.html#rstudio-ide-1).
 
 Otherwise, manually download a ZIP file from
 <https://github.com/nrjess/twitter-sna> and unzip its contents to a
