@@ -66,7 +66,7 @@ by running the following code in the R console.
 ``` r
 install.packages(pkgs = c("tidyverse", "academictwitteR", "rtweet", "tidytags",
                           "textdata", "lubridate", "ergm", "networkD3", 
-                          "linkcomm", "igraph", "here", "knitr", "rmarkdown"))
+                          "linkcomm", "igraph", "here", "knitr", "rmarkdown", "bookdown"))
 ```
 
 ## Access to Twitter Data
