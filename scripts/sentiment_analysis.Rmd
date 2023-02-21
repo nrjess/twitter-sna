@@ -40,6 +40,7 @@ Load contributed R packages that we need to get additional functions.
 ``` {r load-packages}
 library(tidyverse)          # dplyr, ggplot2, tidyr, etc.
 library(here)               # for here()
+library(tidytext)           # for unnest_tokens()
 
 ```
 
@@ -76,8 +77,16 @@ t1.tweets$text <- gsub("#\\w+", "" ,t1.tweets$text)
 t3.tweets$text <- gsub("#\\w+", "" ,t3.tweets$text)
 
 #To make each word a cell row with the corresponding nominator
-t1.byword <- tidytext::unnest_tokens(t1.tweets, output = word, input = text)
-t3.byword <- tidytext::unnest_tokens(t3.tweets, output = word, input = text)
+t1.byword <- unnest_tokens(t1.tweets, output = word, input = text)
+t3.byword <- unnest_tokens(t3.tweets, output = word, input = text)
+
+#Exclude stop words that do not add any value nor express sentiment
+stop_words <- read.csv(file = here("scripts/stopwords.csv"), header = TRUE)
+
+t1.byword <- t1.byword %>%
+  anti_join(stop_words, by = "word")
+t3.byword <- t3.byword %>%
+  anti_join(stop_words, by = "word")
 
 ```
 
