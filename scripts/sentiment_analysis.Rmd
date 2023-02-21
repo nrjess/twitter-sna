@@ -40,7 +40,7 @@ Load contributed R packages that we need to get additional functions.
 ``` {r load-packages}
 library(tidyverse)          # dplyr, ggplot2, tidyr, etc.
 library(here)               # for here()
-library(tidytext)           # for unnest_tokens()
+library(tidytext)           # for unnest_tokens(), get_sentiments()
 
 ```
 
@@ -87,6 +87,50 @@ t1.byword <- t1.byword %>%
   anti_join(stop_words, by = "word")
 t3.byword <- t3.byword %>%
   anti_join(stop_words, by = "word")
+
+```
+
+```{r import-sentiments}
+
+# select only POSITIVE words in the NRC data set
+sent_pos <- get_sentiments("nrc") %>%
+  filter(sentiment == "positive") %>%
+  rename(pos_sentiment = sentiment)
+
+# select only NEGATIVE words in the NRC data set
+sent_neg <- get_sentiments("nrc") %>%
+  filter(sentiment == "negative") %>%
+  rename(neg_sentiment = sentiment)
+
+# alternatively, upload an excel file of user defined sentiments
+#sentiment <- read.csv("sentiments.csv")
+
+#sent_pos <- sentiment %>%
+#  filter(sentiment == "positive") %>%
+#  rename(pos_sentiment = sentiment)
+#sent_neg <- sentiment %>%
+#  filter(sentiment == "negative") %>%
+#  rename(neg_sentiment = sentiment)
+
+```
+
+
+```{r code-sentiments}
+
+# Create the list of words by nominator, identifying in addition if the words are positive or negative
+t1.byword <- t1.byword %>%
+  left_join(sent_pos, by="word") %>%
+  left_join(sent_neg, by="word") %>%
+  select(nominator, created_at, word, pos_sentiment, neg_sentiment)
+t3.byword <- t3.byword %>%
+  left_join(sent_pos, by="word") %>%
+  left_join(sent_neg, by="word") %>%
+  select(nominator, created_at, word, pos_sentiment, neg_sentiment)
+
+```
+
+```{r sentiment-freq}
+
 
 ```
 
