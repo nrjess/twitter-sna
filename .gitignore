@@ -49,4 +49,5 @@ inst/doc
 # we use to automate creation of the `data` folder.
 data/*.Rdata
 data/*.Rds
+data/*.csv
 
