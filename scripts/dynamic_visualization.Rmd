@@ -1,0 +1,225 @@
+---
+title: "Dynamic Visualization"
+author: "Nicole Jess, Hasan Gokberk Bayhan, Yuqing Liu"
+date: "`r format(Sys.time(), '%Y-%m-%d, %H:%M:%S %Z')`"
+output: 
+  bookdown::html_document2:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+    code_folding:  hide
+params: 
+  outfile: "dynammic_visualization.html"
+---
+
+# Purpose
+The script creates a dynamic visualization of a network based on an edgelist created from Twitter data.
+
+```{r global-options, include=FALSE}
+# Create a custom chunk hook/option for controlling font size in chunk & output.
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  ifelse(options$cfsize != "normalsize", paste0("\n \\", options$cfsize,"\n\n", 
+                                              x, "\n\n \\normalsize"), x)
+  })
+
+# Global chunk options (over-ridden by local chunk options)
+knitr::opts_chunk$set(include  = TRUE, echo = TRUE, error = TRUE, 
+                      message = FALSE, warning = FALSE, 
+                      cfsize = "footnotesize", fig.height=8)
+
+# Declare location of this script relative to the project root directory.
+here::i_am(path = "scripts/dynamic_visualization.Rmd")
+```
+
+# Load R Packages
+Load contributed R packages that we need to get additional functions. 
+
+``` {r load-packages}
+library(tidyverse)          # dplyr, ggplot2, tidyr, etc.
+library(here)               # for here()
+library(lubridate)          # for floor_date()
+library(networkDynamic)     # for networkDynamic()
+library(ndtv)               # for compute.animation(), render.d3movie()
+
+```
+
+# Load data
+
+``` {r load-data}
+# Data file created by "scripts/create_social_network_data.Rmd"
+load(file=here("data/twitter_edges.RData"))
+load(file=here("data/int_nodes.RData"))
+```
+
+# Choose a duration
+
+The duration defines how long tweets will remain visible in the dynamic visualization. For this example, we chose to allow the effect of a tweet to last 7 days.
+
+```{r }
+
+duration = 7
+
+# define onset and terminus
+start <- edgelist$created_at %>% min() %>% as.Date() %>% floor_date(.,unit="day") # first date observed in edgelist
+
+edgelist$onset  <- difftime(edgelist$created_at, start, units="days") %>%
+  as.double() %>% 
+  floor()
+
+edgelist$terminus  <- edgelist$onset + duration  # can change--we chose to have the effect of a tweet last for 7 days
+
+```
+
+# Formatting the edgelist
+
+This does the following:
+* applies integer IDs to edges
+* formats dates correctly
+* simplifies variable names
+
+```{r}
+
+# save integer ids
+node_ids <- nodes %>% select(nodes, id, username)
+
+# add integer ids to edgelist
+edges <- edgelist %>% 
+  left_join(node_ids, by=c('from'='id')) %>%  # join with integer node ids for 'from'
+  select(-from) %>%
+  rename(head = nodes,
+         from=username) %>%
+  left_join(node_ids, by=c('to'='id')) %>%  # join with integer node ids for 'to'
+  select(-to) %>%
+  rename(tail = nodes,
+         to=username) %>%
+  subset(head != tail) %>%  # remove self-ties
+  relocate(from,to)
+
+# created_at should be formatted as date
+edges$created_at <- as.Date(edges$created_at, format="%Y-%m-%d")
+
+# tail and head should be formatted as numeric
+edges$tail <- as.numeric(edges$tail)
+edges$head <- as.numeric(edges$head)
+
+# give follower count a better name
+nodes$follower_count <- nodes$public_metrics$followers_count 
+
+```
+
+# Combine overlapping edges
+
+Edges that overlap need to be combined. For example, if node A and node B have an edge that lasts from time 1-7 and another edge that lasts from time 3-9, this would be combined into a single edge that lasts from time 1-9.
+
+```{r combine-edges}
+
+es <- edges %>%
+  arrange(tail,head,from,to,onset) %>% # sort
+  group_by(tail,head,from,to) %>%
+  mutate(index = cumsum(cummax(lag(terminus, default = first(terminus))) < onset)) %>%  # index for distinct time intervals
+  group_by(tail,head,from,to,index) %>%  # combine rows that represent overlapping intervals between the same 2 nodes
+  summarise(onset = min(onset),
+            terminus = max(terminus),  
+            edge_type = toString(unique(edge_type)),  # lists for multiple edge_types (ex- retweet, mention)
+            text = toString(unique(text))) %>%   # list text of multiple tweets where applicable
+  select(onset,terminus,tail,head,from,to,text,edge_type) %>%
+  as.data.frame()
+
+```
+
+# Formatting the nodelist
+
+This adds onset and terminus information to the nodelist which allows node characteristics to be dynamic. 
+
+```{r prep-nodes}
+
+# format node attributes for dynamic network
+vs <- rbind(es %>%   # extract all 'tail' nodes from edgelist
+              select(onset,terminus,tail) %>% 
+              rename(vertex.id=tail),
+            es %>%   # extract all 'head' nodes from edgelist
+              select(onset,terminus,head) %>% 
+              rename(vertex.id=head)) %>%  
+  distinct(onset, terminus, vertex.id) %>%  # keep only unique combinations
+  left_join(nodes, by=c('vertex.id'='nodes')) %>%  #join with node attributes
+  select(onset,terminus,vertex.id,username,description,location,verified,follower_count,degree) %>%
+  as.data.frame() %>%
+  arrange(vertex.id) 
+
+```
+
+# Create a dynamic network object
+
+Includes the edge and node attributes needed for the visualization.
+
+```{r}
+
+# create dynamic network (for full network)
+net1.dyn <- networkDynamic(edge.spells=es, 
+                           vertex.spells=vs, 
+                           create.TEAs=TRUE,  # create dynamic attributes
+                           edge.TEA.names=c('from','to','text','edge_type'),  # list dynamic edge attributes in order starting w/ col 5 of es
+                           vertex.TEA.names=c('username','description','location','verified','follower_count','degree')) # list dynamic node attributes in order starting w/ col 4 of vs 
+
+```
+
+# Set animation parameters
+
+You may adjust the following to customize the time intervals and aggregation used for visualization:
+
+* start: The time point at which the sequence of layouts should begin
+* end: The time point at which the sequence of layouts should finish
+* interval: The amount of time between successive layouts
+* aggregate.dur: The duration of time over which 
+
+```{r}
+
+# set slice parameters for animation
+net1.dyn1 <- compute.animation(net1.dyn,
+                               slice.par=list(start=min(es$onset),  # change the start and end to focus on a shorter interval of time 
+                                              end=max(es$terminus),  
+                                              interval=1, 
+                                              aggregate.dur=1,  
+                                              rule="earliest"))
+
+```
+
+# Dynamic Visualization!
+
+```{r}
+
+render.d3movie(net1.dyn1,
+                     usearrows = FALSE,
+                     edge.lwd = 2,  
+                     edge.col = 'grey', 
+                     edge.tooltip = function(slice) {     # display edge attributes when you click on an edge
+                       paste("<b>From:</b>", (slice %e% "from"),      "<br>", 
+                             "<b>To:</b>",   (slice %e% "to"),        "<br>",
+                             "<b>Type:</b>", (slice %e% "edge_type"), "<br>", 
+                             "<b>Text:</b>", (slice %e% "text"))
+                     },
+                     vertex.cex = .3, # add sizing by attrbute
+                     vertex.col =  function(slice) {
+                       case_when((slice %v% "verified" == TRUE) ~ 'green',  # verified nodes are green, all others are grey
+                                 (slice %v% "verified" == FALSE) ~ 'grey',
+                                 is.na(slice %v% "verified") ~ 'grey')
+                     },
+                     #vertex.sides = ,  # change node shapes by attribute
+                     vertex.tooltip = function(slice) {     # display node attributes when you click on an node
+                       paste("<b>Username:</b>",    (slice %v% "username") ,    "<br>",
+                             "<b>Location:</b>",    (slice %v% "location") ,    "<br>",
+                             "<b>Description:</b>", (slice %v% "description") , "<br>",
+                             "<b>Followers:</b>",   (slice %v% "follower_count"))
+                     },
+                     #displaylabels = TRUE,
+                     #label = net1.dyn %v% "username",
+                     #label.cex = .6,  
+                     #label.col = "blue", 
+                     main = 'ties by day 4/11/22-4/28/22',
+                     output.mode = 'htmlWidget')
+
+```
+
