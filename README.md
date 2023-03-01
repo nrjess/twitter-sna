@@ -57,6 +57,28 @@ project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-P
   - `twitter-sna.Rproj`: This is an RStudio project file. It contains
     some settings for working with the project in that software.
 
+### List of Tools
+
+This section lists and briefly describes each script found in the
+scripts folder in the *twitter-sna* repository.
+
+- *scrape_tweets.RMD*: Create a user-defined query, scrape tweet data,
+  and save to a local repository.
+- *create_social_network_data.RMD*: Restructure tweet data into a format
+  that is useful for social network analysis (edgelist and nodelist).
+- *dynamic_visualizations.RMD*: Create a dynamic visualization that
+  shows the changes in the network over time.
+- *sentiment analysis.RMD*: Code tweets for sentiment for use in
+  influence models. This example codes for positive and negative
+  sentiments but tweets coded in many different ways.
+
+### Flow Diagram
+
+This diagram shows the sequence that scripts should be run to ensure
+that the required inputs have been created.
+
+<img src="flow_diagram.png" width="100%" />
+
 ## Install R Packages from CRAN
 
 Scripts in this repository depend on having a number of R packages
@@ -66,7 +88,8 @@ by running the following code in the R console.
 ``` r
 install.packages(pkgs = c("tidyverse", "academictwitteR", "rtweet", "tidytags",
                           "textdata", "lubridate", "ergm", "networkD3", 
-                          "linkcomm", "igraph", "here", "knitr", "rmarkdown", "bookdown"))
+                          "linkcomm", "igraph", "here", "knitr", "rmarkdown", 
+                          "bookdown"))
 ```
 
 ## Access to Twitter Data
@@ -88,8 +111,7 @@ of a line in the .Renviron file, following the format:
 TWITTER_BEARER=YOURTOKENHERE
 
 ``` r
-library(academictwitteR)
-set_bearer()
+academictwitteR::set_bearer()
 ```
 
 Save the changes to the environment and close. Go to Session and Restart
@@ -99,19 +121,8 @@ Now you will have a system environment variable in memory that contains
 your bearer token. You can retrieve it using the following command.
 
 ``` r
-library(academictwitteR)
-get_bearer()
+academictwitteR::get_bearer()
 ```
-
-## List of Tools
-
-This section lists and briefly describes the scripts in the
-*twitter-sna* repository.
-
-- *scrape_tweets*: Create a user-defined query, scrape tweet data, and
-  save to a local repository.
-- *create_social_network_data*: Restructure tweet data into a format
-  that is useful for social network analysis (edgelist and nodelist).
 
 ## Software Information
 

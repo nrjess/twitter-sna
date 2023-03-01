@@ -2,6 +2,7 @@
 title: "twitter-sna: tools for social network analysis with twitter data"
 author: "Nicole Jess & Yuqing Liu"
 output: github_document
+
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -26,9 +27,9 @@ or fork and clone the package to your computer using the usual Git commands
 (Bryan, 2018; Bryan et al., n.d., Chapter 16). We suggest the method shown in 
 [Section 16.2.2](https://happygitwithr.com/existing-github-first.html#rstudio-ide-1).
 
-Otherwise, manually download a ZIP file from https://github.com/nrjess/twitter-sna and unzip its contents to a folder.
-Either way, the files should end up in a folder called `twitter-sna` on your
-computer. That folder is your local copy of the repository.
+Otherwise, manually download a ZIP file from https://github.com/nrjess/twitter-sna 
+and unzip its contents to a folder. Either way, the files should end up in a folder 
+called `twitter-sna` on your computer. That folder is your local copy of the repository.
 
 Note that the code uses relative rather than absolute folder path and
 file name references. Moving or renaming subfolders and/or files may cause
@@ -64,6 +65,70 @@ The repository is set up as an
     * `twitter-sna.Rproj`: This is an RStudio project file. It contains some 
       settings for working with the project in that software. 
 
+### List of Tools
+This section lists and briefly describes each script found in the scripts folder 
+in the *twitter-sna* repository. 
+
+- *scrape_tweets.RMD*: Create a user-defined query, scrape tweet data, and save 
+  to a local repository.
+- *create_social_network_data.RMD*: Restructure tweet data into a format that is 
+  useful for social network analysis (edgelist and nodelist).
+- *dynamic_visualizations.RMD*: Create a dynamic visualization that shows the 
+  changes in the network over time.
+- *sentiment analysis.RMD*: Code tweets for sentiment for use in influence 
+  models. This example codes for positive and negative sentiments but tweets 
+  coded in many different ways. 
+  
+### Flow Diagram
+
+This diagram shows the sequence that scripts should be run to ensure that the required inputs have been created.
+
+```{r data-flow-diagram, include=FALSE}
+library(DiagrammeR)
+library(DiagrammeRsvg)
+library(rsvg)
+library(tidyverse)
+
+grViz("digraph {
+  
+graph[layout = dot, rankdir = TB]
+
+# Starting node
+node [shape = oval, style = filled, fillcolor = green]
+start [label = 'Start Here']
+
+# Script file node style & nodes.
+node [shape = box, style = filled, fillcolor = lightblue, fixedsize = FALSE]
+scrape [label = 'scripts/\nscrape_twitter.Rmd']
+data [label = 'scripts/\ncreate_social_network_data.Rmd']
+viz [label = 'scripts/\nvisualizations.Rmd\n(coming soon!)']
+dviz [label = 'scripts/\ndynamic_visualizations.Rmd']
+fwd [label = 'scripts/\nforward_paths.Rmd\n(coming soon!)']
+sent [label = 'scripts/\nsentiment_analysis.Rmd']
+infl [label = 'scripts/\ninfluence_model.Rmd\n(coming soon!)']
+select [label = 'scripts/\nselection_model.Rmd\n(coming soon!)']
+
+# Visible Edges
+start -> scrape
+scrape -> data
+data -> viz
+data -> dviz
+data -> fwd
+data -> sent
+data -> select
+sent -> infl
+
+}", height=500) %>% 
+  export_svg() %>% 
+  charToRaw() %>% 
+  rsvg_png("flow_diagram.png")
+
+```
+
+```{r, echo=FALSE} 
+knitr::include_graphics("flow_diagram.png") 
+```
+
 
 ## Install R Packages from CRAN
 Scripts in this repository depend on having a number of R packages 
@@ -73,13 +138,15 @@ running the following code in the R console.
 ```r 
 install.packages(pkgs = c("tidyverse", "academictwitteR", "rtweet", "tidytags",
                           "textdata", "lubridate", "ergm", "networkD3", 
-                          "linkcomm", "igraph", "here", "knitr", "rmarkdown", "bookdown"))
+                          "linkcomm", "igraph", "here", "knitr", "rmarkdown", 
+                          "bookdown"))
 ```
 
 ```{r install-pkgs-from-CRAN, echo = FALSE, eval = FALSE}
 install.packages(pkgs = c("tidyverse", "academictwitteR", "rtweet", "tidytags",
                           "textdata", "lubridate", "ergm", "networkD3", 
-                          "linkcomm", "igraph", "here", "knitr", "rmarkdown", "bookdown"))
+                          "linkcomm", "igraph", "here", "knitr", "rmarkdown", 
+                          "bookdown"))
 ```
 
 
@@ -100,8 +167,7 @@ file, following the format: TWITTER_BEARER=YOURTOKENHERE
 
 
 ```{r store-bearer-token, eval = FALSE}
-library(academictwitteR)
-set_bearer()
+academictwitteR::set_bearer()
 ```
 
 Save the changes to the environment and close. Go to Session and Restart R.
@@ -110,17 +176,8 @@ Now you will have a system environment variable in memory that contains your
 bearer token. You can retrieve it using the following command. 
 
 ```{r retrieve-bearer-token, eval = FALSE}
-library(academictwitteR)
-get_bearer()
+academictwitteR::get_bearer()
 ```
-
-## List of Tools
-This section lists and briefly describes the scripts in the *twitter-sna* repository. 
-
-- *scrape_tweets*: Create a user-defined query, scrape tweet data, and save to a 
-  local repository.
-- *create_social_network_data*: Restructure tweet data into a format that is 
-  useful for social network analysis (edgelist and nodelist).
 
 
 ## Software Information
