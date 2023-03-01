@@ -43,6 +43,17 @@ project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-P
       from GitHub.
   - `scripts`: This folder is where you can find the key files you will
     need to use if you want to run these analyses on your own computer.
+    - `scrape_tweets.RMD` This script creates a user-defined query,
+      scrapes data from Twitter, and saves the data to the user’s local
+      repository.
+    - `create_social_network_data.RMD` This script restructures tweet
+      data into a format that is useful for social network analysis
+      (edgelists and nodelists).
+    - `dynamic_visualizations.RMD` This script creates a dynamic
+      visualization that shows the changes in the network over time.
+    - `sentiment analysis.RMD` This script codes tweets for sentiment
+      for use in influence models. This example codes for positive and
+      negative sentiments but tweets can be coded in many other ways.
   - `.gitignore`: This file tells Git what files to ignore and omit from
     synchronizing with the main repository on GitHub.
   - `LICENSE`: This file contains the terms of the license that applies
@@ -56,21 +67,6 @@ project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-P
     automatically.
   - `twitter-sna.Rproj`: This is an RStudio project file. It contains
     some settings for working with the project in that software.
-
-### List of Tools
-
-This section lists and briefly describes each script found in the
-scripts folder in the *twitter-sna* repository.
-
-- *scrape_tweets.RMD*: Create a user-defined query, scrape tweet data,
-  and save to a local repository.
-- *create_social_network_data.RMD*: Restructure tweet data into a format
-  that is useful for social network analysis (edgelist and nodelist).
-- *dynamic_visualizations.RMD*: Create a dynamic visualization that
-  shows the changes in the network over time.
-- *sentiment analysis.RMD*: Code tweets for sentiment for use in
-  influence models. This example codes for positive and negative
-  sentiments but tweets coded in many different ways.
 
 ### Flow Diagram
 
