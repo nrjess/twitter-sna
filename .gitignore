@@ -51,3 +51,5 @@ data/*.Rdata
 data/*.Rds
 data/*.csv
 
+# Omit html output files from GitHub.
+scripts/*.html
