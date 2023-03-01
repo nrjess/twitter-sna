@@ -122,6 +122,7 @@ t1.byword <- t1.byword %>%
   left_join(sent_pos, by="word") %>%
   left_join(sent_neg, by="word") %>%
   select(nominator, created_at, word, pos_sentiment, neg_sentiment)
+
 t3.byword <- t3.byword %>%
   left_join(sent_pos, by="word") %>%
   left_join(sent_neg, by="word") %>%
@@ -131,6 +132,68 @@ t3.byword <- t3.byword %>%
 
 ```{r sentiment-freq}
 
+# Frequencies of positive words by nominator per tweet
+t1.pos.words <- t1.byword %>%
+  group_by(nominator, created_at, pos_sentiment) %>%
+  summarize(pos_freq = n()) %>%
+  filter(pos_sentiment=="positive")
+
+t3.pos.words <- t3.byword %>%
+  group_by(nominator, created_at, pos_sentiment) %>%
+  summarize(pos_freq = n()) %>%
+  filter(pos_sentiment=="positive")
+
+# Frequencies of negative words by nominator per tweet
+t1.neg.words <- t1.byword %>%
+  group_by(nominator, created_at, neg_sentiment) %>%
+  summarize(neg_freq = n()) %>%
+  filter(neg_sentiment=="negative")
+
+t3.neg.words <- t3.byword %>%
+  group_by(nominator, created_at, neg_sentiment) %>%
+  summarize(neg_freq = n()) %>%
+  filter(neg_sentiment=="negative")
 
 ```
 
+```{r}
+
+# Total words by nominator per tweet
+t1.total.words <- t1.byword %>%
+  group_by(nominator, created_at) %>%
+  summarize(total_words = n())
+
+t3.total.words <- t3.byword %>%
+  group_by(nominator, created_at) %>%
+  summarize(total_words = n())
+
+# join all sentiment data
+t1.all.sentiment <- t1.total.words %>%
+  full_join(t1.pos.words, by=c("nominator", "created_at")) %>%
+  full_join(t1.neg.words, by=c("nominator", "created_at")) %>%
+  mutate(pos_freq=replace_na(pos_freq,0),
+         neg_freq=replace_na(neg_freq,0),
+         neutral_freq=total_words-(pos_freq+neg_freq)) %>%
+  select(nominator,created_at,pos_freq,neg_freq,neutral_freq,total_words)
+
+t3.all.sentiment <- t3.total.words %>%
+  full_join(t3.pos.words,by=c("nominator", "created_at")) %>%
+  full_join(t3.neg.words,by=c("nominator", "created_at")) %>%
+  mutate(pos_freq=replace_na(pos_freq,0),
+         neg_freq=replace_na(neg_freq,0),
+         neutral_freq=total_words-(pos_freq+neg_freq)) %>%
+  select(nominator,created_at,pos_freq,neg_freq,neutral_freq,total_words)
+
+```
+
+# Save Data
+
+```{r save-sentiment-data}
+# here() creates a path relative to the location of the twitter-sna.proj file
+# that will be portable across local repositories on different computers.
+
+save(t1.all.sentiment, file=here("data/t1_sentiment.RData"))
+save(t3.all.sentiment, file=here("data/t3_sentiment.RData"))
+
+
+```
