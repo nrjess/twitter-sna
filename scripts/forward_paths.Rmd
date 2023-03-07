@@ -1,0 +1,350 @@
+---
+title: "Dynamic Visualization & Forward Paths"
+author: "Nicole Jess, Hasan Gokberk Bayhan"
+date: "`r format(Sys.time(), '%Y-%m-%d, %H:%M:%S %Z')`"
+output: 
+  bookdown::html_document2:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+    code_folding:  hide
+params: 
+  outfile: "forward_paths.html"
+---
+
+# Purpose
+The script creates a dynamic visualization of a network based on an edgelist created from Twitter data.
+
+```{r global-options, include=FALSE}
+# Create a custom chunk hook/option for controlling font size in chunk & output.
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  ifelse(options$cfsize != "normalsize", paste0("\n \\", options$cfsize,"\n\n", 
+                                              x, "\n\n \\normalsize"), x)
+  })
+
+# Global chunk options (over-ridden by local chunk options)
+knitr::opts_chunk$set(include  = TRUE, echo = TRUE, error = TRUE, 
+                      message = FALSE, warning = FALSE, 
+                      cfsize = "footnotesize", fig.height=8)
+
+# Declare location of this script relative to the project root directory.
+here::i_am(path = "scripts/forward_paths.Rmd")
+```
+
+# Load R Packages
+Load contributed R packages that we need to get additional functions. 
+
+``` {r load-packages}
+library(tidyverse)          # dplyr, ggplot2, tidyr, etc.
+library(here)               # for here()
+library(lubridate)          # for floor_date()
+library(linkcomm)           # for integer.edgelist()
+library(networkDynamic)     # for networkDynamic()
+library(ndtv)               # for compute.animation(), render.d3movie(), transmissionTimeline()
+library(tsna)               # for tPath()
+
+```
+
+# Load data
+
+``` {r load-data}
+t2.edgelist <- read.csv(file = here("data/LoudounCo_edge.csv"), header = TRUE)
+profiles <- read.csv(file = here("data/LoudounCo_node.csv"), header = TRUE)
+
+```
+
+# Choose a duration
+
+The duration defines how long tweets will remain visible in the dynamic visualization. For this example, we chose to allow the effect of a tweet to last 7 days.
+
+```{r onset-terminus}
+
+duration = 7
+
+# define onset and terminus
+start <- t2.edgelist$created_at %>% min() %>% as.Date() %>% floor_date(.,unit="day") # first date observed in edgelist
+
+t2.edgelist$onset  <- difftime(t2.edgelist$created_at, start, units="days") %>%
+  as.double() %>% 
+  floor()
+
+t2.edgelist$terminus  <- t2.edgelist$onset + duration  # can change--we chose to have the effect of a tweet last for 7 days
+
+```
+
+# Data prep
+
+```{r data-prep}
+
+# convert to integer ids
+network1 <- t2.edgelist %>%
+  select(from, to) %>%
+  as.matrix() %>%
+  integer.edgelist()
+
+# format nodes for visualization
+nodes <- as.data.frame(network1$nodes)
+nodes$username <- rownames(nodes)
+nodes <- left_join(nodes, profiles, by="username")
+nodes <- nodes %>% rename(nodes = `network1$nodes`)
+nodes$follower_count <- nodes$public_metrics.followers_count
+
+#save indegree and outdegree to use as node attributes
+indegree <- t2.edgelist %>% group_by(to) %>% summarise(indegree=n()) %>% as.data.frame()
+outdegree <- t2.edgelist %>% group_by(from) %>% summarise(outdegree=n()) %>% as.data.frame()
+
+# join nodes with indegree and outdegree
+nodes <- nodes %>%
+  left_join(indegree, by=c("username"="to")) %>%
+  left_join(outdegree, by=c("username"="from"))
+
+nodes$indegree[is.na(nodes$indegree)] <- 0
+nodes$outdegree[is.na(nodes$outdegree)] <- 0
+nodes$degree <- nodes$indegree + nodes$outdegree
+
+node_ids <- nodes %>% select(nodes, username)
+
+# format edges for visualization
+edges <- t2.edgelist %>%
+  left_join(node_ids, by=c('from'='username')) %>%  # join with integer node ids for 'from'
+  rename(head = nodes) %>%
+  left_join(node_ids, by=c('to'='username')) %>%  # join with integer node ids for 'to'
+  rename(tail = nodes) %>%
+  subset(head != tail) %>%  # remove self-ties
+  relocate(from,to)
+
+edges$created_at <- as.Date(edges$created_at, format="%Y-%m-%d")
+
+edges$tail <- as.numeric(edges$tail)
+edges$head <- as.numeric(edges$head)
+
+# format edgelist and edge attributes for dynamic network
+# necessary so that length of 'es' is the same as the length of 'as.data.frame(net1.df)'--check on lines 95-96
+es <- edges %>%
+  arrange(tail,head,from,to,onset) %>% # sort
+  group_by(tail,head,from,to) %>%
+  mutate(index = cumsum(cummax(lag(terminus, default = first(terminus))) < onset)) %>%  # index for distinct time intervals
+  group_by(tail,head,from,to,index) %>%  # combine rows that represent overlapping intervals between the same 2 nodes
+  summarise(onset = min(onset),
+            terminus = max(terminus),
+            date = toString(unique(created_at)),
+            edge_type = toString(unique(edge_type)),  # lists for multiple edge_types (ex- retweet, mention)
+            text = toString(unique(text))) %>%   # list text of multiple tweets where applicable
+  # can we separate by & instead of ,?
+  select(onset,terminus,tail,head,from,to,date,text,edge_type) %>%
+  as.data.frame()
+
+# format node attributes for dynamic network
+vs <- rbind(es %>% select(onset,terminus,tail) %>% rename(vertex.id=tail),
+            es %>% select(onset,terminus,head) %>% rename(vertex.id=head)) %>%  # extract all 'head' and 'tail' nodes from edgelist
+  distinct(onset, terminus, vertex.id) %>%  # keep only unique combinations
+  left_join(nodes, by=c('vertex.id'='nodes')) %>%  #join with node attributes
+  select(onset,terminus,vertex.id,username,description,location,verified,follower_count,indegree) %>%
+  as.data.frame() %>%
+  arrange(vertex.id)
+
+# the dynamic network animations take a while to run, so for this example we will exclude nodes with degree less than 5
+# skip this step (lines 101-114) if you would like to visualize the full network
+vs1 <- vs %>%
+  filter(indegree>1) %>%
+  mutate(vertex.id = as.numeric(factor(username)))
+
+node_ids1 <- vs1 %>% select(vertex.id, username) %>% unique()
+
+es1 <- es %>%
+  select(-head, -tail) %>%
+  left_join(node_ids1, by=c('from'='username')) %>%
+  rename(head = vertex.id) %>%
+  left_join(node_ids1, by=c('to'='username')) %>%
+  rename(tail = vertex.id) %>%
+  filter(head %in% node_ids1$vertex.id & tail %in% node_ids1$vertex.id) %>%
+  select(onset,terminus,tail,head,from,to,date,text,edge_type)
+
+
+```
+
+
+# Create a dynamic network object
+
+Includes the edge and node attributes needed for the visualization.
+
+```{r}
+
+# create dynamic network (for full network)
+net1.dyn <- networkDynamic(edge.spells=es1, 
+                           vertex.spells=vs1, 
+                           create.TEAs=TRUE,  # create dynamic attributes
+                           edge.TEA.names=c('from','to','date','text','edge_type'),  # list dynamic edge attributes in order starting w/ col 5 of es
+                           vertex.TEA.names=c('username','description','location','verified','follower_count','indegree')) # list dynamic node attributes in order starting w/ col 4 of vs 
+
+```
+
+# Set animation parameters
+
+You may adjust the following to customize the time intervals and aggregation used for visualization:
+
+* start: The time point at which the sequence of layouts should begin
+* end: The time point at which the sequence of layouts should finish
+* interval: The amount of time between successive layouts
+* aggregate.dur: The duration of time over which the network should be aggregated to derive the network for each layout
+* rule: The aggregation rule to be used when collapsing the network
+
+```{r}
+
+# set slice parameters for animation
+net1.dyn1 <- compute.animation(net1.dyn,
+                               slice.par=list(start=min(es1$onset),  # change the start and end to focus on a shorter interval of time 
+                                              end=max(es1$terminus),  
+                                              interval=1, 
+                                              aggregate.dur=1,  
+                                              rule="earliest"))
+
+```
+
+# Forward Paths
+
+
+
+```{r}
+
+actor = c(495) # 495 is the integer ID for iandprior
+
+# extract the forward reachable paths from a node
+iandprior_fwd <- tPath(net1.dyn,
+                       v = actor,
+                       direction = "fwd",
+                       start = 0,
+                       end = max(es1$terminus))
+
+```
+
+## Static visualizations
+
+```{r fwd-plot1}
+plot(iandprior_fwd)
+
+```
+
+```{r fwd-plot2}
+plot(transmissionTimeline(iandprior_fwd,
+                     jitter=TRUE,
+                     main='Forward paths of iandprior'))
+```
+
+```{r fwd-plot3}
+plotPaths(net1.dyn,
+          iandprior_fwd,
+          displaylabels=FALSE,
+          vertex.col="white",
+          edge.label.col = rgb(0,0,0,0))
+```
+
+## Dynamic Visualization
+
+```{r dyn-fwd-plot-prep}
+
+# pull out the vertex.ids and tdist (onset must be greater than this)
+ian <- as.data.frame(iandprior_fwd) %>%
+  mutate(vertex.id = row_number()) %>%
+  filter(tdist != 'Inf') %>%
+  select(vertex.id, tdist)
+
+# tail must be an element of ian$vertex.id and
+# the corresponding onset must be greater or equal to the tdist associated with that vertex.id
+es.ian <- es1 %>%
+  right_join(ian, by = c("tail" = "vertex.id")) %>%
+  filter(onset>=tdist)
+
+# filter nodes--keep only those in edgelist
+vs2 <- vs1 %>%
+  filter(vertex.id %in% es.ian$tail | vertex.id %in% es.ian$head) %>%
+  mutate(vertex.id = as.numeric(factor(username)),
+         att = ifelse(onset<10,0,1))
+
+# assign new node ids (must be inceasing start with 1)
+node_ids2 <- vs2 %>% select(vertex.id, username) %>% unique()
+
+# match edgelist with new node ids
+es2 <- es.ian %>%
+  select(-head, -tail) %>%
+  left_join(node_ids2, by=c('from'='username')) %>%
+  rename(head = vertex.id) %>%
+  left_join(node_ids2, by=c('to'='username')) %>%
+  rename(tail = vertex.id) %>%
+  filter(head %in% node_ids2$vertex.id & tail %in% node_ids2$vertex.id) %>%
+  select(onset,terminus,tail,head,from,to,date,text,edge_type)
+
+```
+
+```{r dyn-fwd-network}
+
+# create dynamic network
+net2.dyn <- networkDynamic(edge.spells=es2,
+                           vertex.spells=vs2,
+                           create.TEAs=TRUE,  # create dynamic attributes
+                           edge.TEA.names=c('from','to','date','text','edge_type'),  # list dynamic edge attributes in order starting w/ col 5 of es
+                           vertex.TEA.names=c('username','description','location','verified','follower_count','indegree','att')) # list dynamic node attributes in order starting w/ col 4 of vs
+
+
+# length of these edgelists needs to match
+nrow(es2)
+nrow(as.data.frame(net2.dyn))
+
+```
+
+
+```{r dyn-fwd-visualization}
+
+# set time interval
+net2.dyn <- compute.animation(net2.dyn,
+                              slice.par=list(start=min(es2$onset),
+                                             end=max(es2$terminus),
+                                             interval=1,  # currently daily, set to 7 for weekly
+                                             aggregate.dur=1,  # currently daily, set to 7 for weekly
+                                             rule="earliest"))
+
+# dynamic visualization
+render.d3movie(net2.dyn,
+               usearrows = FALSE,
+               edge.lwd = 2,
+               edge.col = 'grey',
+               edge.tooltip = function(slice) {     # display edge attributes when you click on an edge
+                 paste("<b>From:</b>", (slice %e% "from"),      "<br>",
+                       "<b>To:</b>",   (slice %e% "to"),        "<br>",
+                       "<b>Date:</b>", (slice %e% "date"), "<br>",
+                       "<b>Type:</b>", (slice %e% "edge_type"), "<br>",
+                       "<b>Text:</b>", (slice %e% "text"))
+                 },
+               vertex.cex = function(slice) {
+                 case_when((slice %v% "att" == TRUE) ~ .3,  # verified nodes are green, all others are grey
+                           (slice %v% "att" == FALSE) ~ .6)
+                 }, # add sizing by attrbute
+                    # vertex.cex = .3, # add sizing by attrbute
+               vertex.col =  function(slice) {
+                 case_when((slice %v% "verified" == TRUE) ~ 'green',  # verified nodes are green, all others are grey
+                           (slice %v% "verified" == FALSE) ~ 'grey',
+                            is.na(slice %v% "verified") ~ 'grey')
+                 },
+               vertex.sides =  function(slice) {
+                 case_when((slice %v% "username" == "iandprior") ~ 3,   # iandprior is a triangle
+                          # (slice %v% "username" == "fight for schools") ~ 4, #fightforschools is a square
+                           (slice %v% "username" != "iandprior") ~ 50)
+                 },  # change node shapes by attribute
+               vertex.tooltip = function(slice) {     # display node attributes when you click on an node
+                 paste("<b>Username:</b>",    (slice %v% "username") ,    "<br>",
+                       "<b>Location:</b>",    (slice %v% "location") ,    "<br>",
+                       "<b>Description:</b>", (slice %v% "description") , "<br>",
+                       "<b>Followers:</b>",   (slice %v% "follower_count"))
+                 },
+                 #displaylabels = TRUE,
+                 #label = net1.dyn %v% "username",
+                 #label.cex = .6,
+                 #label.col = "blue",
+               main = 'Loudoun County school board recall ties: forward paths from Ian Prior',
+               output.mode = 'htmlWidget')
+
+```
+
