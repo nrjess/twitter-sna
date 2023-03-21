@@ -52,7 +52,7 @@ library(tsna)               # for tPath()
 
 ``` {r load-data}
 # Data file created by "scripts/create_social_network_data.Rmd"
-load(file=here("data/twitter_edges.RData"))
+load(file=here("data/edgelist.RData"))
 load(file=here("data/int_nodes.RData"))
 ```
 
@@ -85,19 +85,19 @@ This does the following:
 ```{r}
 
 # save integer ids
-node_ids <- nodes %>% select(nodes, id, username)
+node_ids <- int_nodes %>% select(nodes, id, username)
 
 # add integer ids to edgelist
 edges <- edgelist %>% 
   left_join(node_ids, by=c('from'='id')) %>%  # join with integer node ids for 'from'
   select(-from) %>%
   rename(head = nodes,
-         from=username) %>%
+         from = username) %>%
   left_join(node_ids, by=c('to'='id')) %>%  # join with integer node ids for 'to'
   select(-to) %>%
   rename(tail = nodes,
-         to=username) %>%
-  subset(head != tail) %>%  # remove self-ties
+         to = username) %>%
+  filter(head != tail) %>%  # remove self-ties
   relocate(from,to)
 
 # created_at should be formatted as date
@@ -108,7 +108,7 @@ edges$tail <- as.numeric(edges$tail)
 edges$head <- as.numeric(edges$head)
 
 # give follower count a better name
-nodes$follower_count <- nodes$public_metrics$followers_count 
+int_nodes$follower_count <- int_nodes$public_metrics$followers_count 
 
 ```
 
@@ -119,8 +119,8 @@ Edges that overlap need to be combined. For example, if node A and node B have a
 ```{r combine-edges}
 
 es <- edges %>%
-  arrange(tail,head,from,to,onset) %>% # sort
-  group_by(tail,head,from,to) %>%
+  arrange(tail,head,onset) %>% # sort
+  group_by(tail,head) %>%
   mutate(index = cumsum(cummax(lag(terminus, default = first(terminus))) < onset)) %>%  # index for distinct time intervals
   group_by(tail,head,from,to,index) %>%  # combine rows that represent overlapping intervals between the same 2 nodes
   summarise(onset = min(onset),
