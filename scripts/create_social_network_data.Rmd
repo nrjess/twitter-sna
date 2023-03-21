@@ -136,10 +136,15 @@ You can remove edge types that are not of interest for your project. For example
 
 ```{r all-edges}
 
+# combine all edge types, exclude any edge types that you do not want to include in your edgelist
 edgelist <- bind_rows(replies,
                       retweets,
                       quotes,
                       mentions)
+
+# drop edges with missing data in 'from' or 'to'
+edgelist <- edgelist %>%
+  drop_na(from,to)
 
 ```
 
@@ -169,22 +174,21 @@ network1 <- edgelist %>%
   as.matrix() %>%
   integer.edgelist()
 
-edges <- network1$edges %>%
+int_edges <- network1$edges %>%
   as.data.frame() %>%
   rename(from = V1,
          to = V2) %>%
   group_by(from,to) %>%
   summarize(weight = n()) %>%
-  filter(from != to) %>%    # remove self-ties
   as.data.frame()
 
 # save indegree and outdegree to use as node attributes
-indegree <- edges %>%
+indegree <- int_edges %>%
   group_by(to) %>%
   summarize(indegree=n()) %>%
   as.data.frame()
 
-outdegree <- edges %>%
+outdegree <- int_edges %>%
   group_by(from) %>%
   summarize(outdegree=n()) %>%
   as.data.frame()
@@ -203,7 +207,7 @@ nodelist <- c(edgelist$from, edgelist$to) %>%
   select(-starts_with("entities"))
 
 # match integer IDs to node attributes
-nodes <- network1$nodes %>%
+int_nodes <- network1$nodes %>%
   as.data.frame() %>%
   rename(nodes = 1) %>%
   mutate(id = rownames(.)) %>%
@@ -227,8 +231,8 @@ FC <- paste0("\\label{fig:igraph}",
             "Plot of network ")
 
 # create an igraph object
-net1 <- graph_from_data_frame(d = edges,
-                              vertices = nodes,
+net1 <- graph_from_data_frame(d = int_edges,
+                              vertices = int_nodes,
                               directed = TRUE)
 
 plot(net1)
@@ -242,9 +246,9 @@ plot(net1)
 # here() creates a path relative to the location of the twitter-sna.proj file
 # that will be portable across local repositories on different computers.
 
-save(edgelist, file=here("data/twitter_edges.RData"))
-save(nodelist, file=here("data/twitter_nodes.RData"))
-save(edges, file=here("data/int_edges.RData"))
-save(nodes, file=here("data/int_nodes.RData"))
+save(edgelist, file=here("data/edgelist.RData"))
+save(nodelist, file=here("data/nodelist.RData"))
+save(int_edges, file=here("data/int_edges.RData"))
+save(int_nodes, file=here("data/int_nodes.RData"))
 
 ```
