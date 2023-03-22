@@ -120,10 +120,10 @@ What is an non-overlapping period?: if the end period of last observation is ear
 es <- edges %>%
   arrange(tail,head,from,to,onset) %>% # sort
   group_by(tail,head,from,to) %>%
-    mutate(lag_terminus = lag(terminus, default = first(terminus)), #create the lag measure of terminus, replace null=first obs
-           cummax_lag = cummax(lag_terminus), #create a cumulative maxima
-           nonoverlap_period = cummax_lag < onset, #evaluate if this entry is a non-overlapping time period
-           index = cumsum(nonoverlap_period)) %>% # index for a distinct time interval
+  mutate(lag_terminus = lag(terminus, default = first(terminus)), #create the lag measure of terminus, replace null=first obs
+         cummax_lag = cummax(lag_terminus), #create a cumulative maxima
+         nonoverlap_period = cummax_lag < onset, #evaluate if this entry is a non-overlapping time period
+         index = cumsum(nonoverlap_period)) %>% # index for a distinct time interval
   group_by(tail,head,from,to,index) %>%  # combine rows that represent overlapping intervals between the same 2 nodes
   summarise(onset = min(onset),
             terminus = max(terminus),  
