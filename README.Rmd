@@ -166,7 +166,7 @@ file, following the format: TWITTER_BEARER=YOURTOKENHERE
 academictwitteR::set_bearer()
 ```
 
-Save the changes to the environment and close. Go to Session and Restart R.
+Save the changes to the environment and close the file. Go to Session and Restart R.
 
 Now you will have a system environment variable in memory that contains your 
 bearer token. You can retrieve it using the following command. 
