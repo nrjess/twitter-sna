@@ -59,6 +59,7 @@ The repository is set up as an
         nodelists).
         * `dynamic_visualizations.RMD` This script creates a dynamic visualization 
         that shows the changes in the network over time.
+        * `path_visualizations.RMD` This script creates a visualizations of paths to explore the influence of individuals in a dynamic network.
         * `sentiment analysis.RMD` This script codes tweets for sentiment for use 
         in influence models. This example codes for positive and negative sentiments 
         but tweets can be coded in many other ways.
@@ -99,8 +100,9 @@ scrape [label = 'scripts/\nscrape_twitter.Rmd']
 data [label = 'scripts/\ncreate_social_network_data.Rmd']
 viz [label = 'scripts/\nvisualizations.Rmd\n(coming soon!)']
 dviz [label = 'scripts/\ndynamic_visualizations.Rmd']
-fwd [label = 'scripts/\nforward_paths.Rmd']
+path [label = 'scripts/\npath_visualizations.Rmd']
 sent [label = 'scripts/\nsentiment_analysis.Rmd']
+key [label = 'scripts/\nkeyword_analysis.Rmd\n(coming soon!)']
 infl [label = 'scripts/\ninfluence_model.Rmd\n(coming soon!)']
 select [label = 'scripts/\nselection_model.Rmd\n(coming soon!)']
 
@@ -109,10 +111,12 @@ start -> scrape
 scrape -> data
 data -> viz
 data -> dviz
-data -> fwd
+data -> path
 data -> sent
+data -> key
 data -> select
 sent -> infl
+key -> infl
 
 }", height=500) %>% 
   export_svg() %>% 

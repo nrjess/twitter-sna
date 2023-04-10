@@ -51,6 +51,9 @@ project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-P
       (edgelists and nodelists).
     - `dynamic_visualizations.RMD` This script creates a dynamic
       visualization that shows the changes in the network over time.
+    - `path_visualizations.RMD` This script creates a visualizations of
+      paths to explore the influence of individuals in a dynamic
+      network.
     - `sentiment analysis.RMD` This script codes tweets for sentiment
       for use in influence models. This example codes for positive and
       negative sentiments but tweets can be coded in many other ways.
