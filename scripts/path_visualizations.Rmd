@@ -1,5 +1,5 @@
 ---
-title: "Dynamic Visualization & Forward Paths"
+title: "Path Visualizations"
 author: "Nicole Jess, Hasan Gokberk Bayhan, Yuqing Liu"
 date: "`r format(Sys.time(), '%Y-%m-%d, %H:%M:%S %Z')`"
 output: 
@@ -10,7 +10,7 @@ output:
     number_sections: true
     code_folding:  hide
 params: 
-  outfile: "forward_paths.html"
+  outfile: "path_visualizations.html"
 ---
 
 # Purpose
@@ -31,7 +31,7 @@ knitr::opts_chunk$set(include  = TRUE, echo = TRUE, error = TRUE,
                       cfsize = "footnotesize", fig.height=8)
 
 # Declare location of this script relative to the project root directory.
-here::i_am(path = "scripts/forward_paths.Rmd")
+here::i_am(path = "scripts/path_visualizations.Rmd")
 ```
 
 # Load R Packages
@@ -146,10 +146,37 @@ vs <- rbind(es %>%   # extract all 'tail' nodes from edgelist
               select(onset,terminus,head) %>% 
               rename(vertex.id=head)) %>%  
   distinct(onset, terminus, vertex.id) %>%  # keep only unique combinations
-  left_join(nodes, by=c('vertex.id'='nodes')) %>%  #join with node attributes
+  left_join(int_nodes, by=c('vertex.id'='nodes')) %>%  #join with node attributes
   select(onset,terminus,vertex.id,username,description,location,verified,follower_count,degree) %>%
   as.data.frame() %>%
   arrange(vertex.id) 
+
+```
+
+# Applying a filter
+
+If the network is very large, the code may take a long time to run and may produce a very crowded visualization. This code applies a filter by degree to reduce the size of the network to make it more manageable. This is example uses a filter of degree>4 but this can be changed to any value. 
+
+If you do not wish to use a filter, set eval=FALSE below.
+
+```{r, eval=TRUE}
+# the dynamic network animations take a while to run, so for this example we will exclude nodes with degree less than 5
+# skip this step if you would like to visualize the full network
+vs <- vs %>% 
+  filter(degree>4) %>%
+  mutate(vertex.id = as.numeric(factor(username)))
+
+node_ids5 <- vs %>% select(vertex.id, username) %>% unique()
+
+es <- es %>% 
+  select(-head, -tail) %>%
+  left_join(node_ids5, by=c('from'='username')) %>% 
+  rename(head = vertex.id) %>%
+  left_join(node_ids5, by=c('to'='username')) %>% 
+  rename(tail = vertex.id) %>%
+  filter(head %in% node_ids5$vertex.id & tail %in% node_ids5$vertex.id) %>%
+  select(onset,terminus,tail,head,from,to,text,edge_type)
+
 
 ```
 
@@ -172,7 +199,7 @@ net1.dyn <- networkDynamic(edge.spells=es,
 
 ```{r}
 
-actor = c(986) # 986 is the integer ID for RepKrajewski
+actor = c(252) # 252 is the integer ID for RepKrajewski
 
 # extract the forward reachable paths from a node
 RepKrajewski_fwd <- tPath(net1.dyn,
