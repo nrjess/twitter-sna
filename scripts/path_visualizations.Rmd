@@ -62,7 +62,7 @@ The duration defines how long tweets will remain visible in the dynamic visualiz
 
 ```{r }
 
-duration = 7
+duration = 30
 
 # define onset and terminus
 start <- edgelist$created_at %>% min() %>% as.Date() %>% floor_date(.,unit="day") # first date observed in edgelist
@@ -127,6 +127,10 @@ es <- edges %>%
             terminus = max(terminus),  
             edge_type = toString(unique(edge_type)),  # lists for multiple edge_types (ex- retweet, mention)
             text = toString(unique(text))) %>%   # list text of multiple tweets where applicable
+  rename(tail=head,   # switch directions
+         head=tail,
+         from=to,
+         to=from) %>%  
   select(onset,terminus,tail,head,from,to,text,edge_type) %>%
   as.data.frame()
 
@@ -153,33 +157,6 @@ vs <- rbind(es %>%   # extract all 'tail' nodes from edgelist
 
 ```
 
-# Applying a filter
-
-If the network is very large, the code may take a long time to run and may produce a very crowded visualization. This code applies a filter by degree to reduce the size of the network to make it more manageable. This is example uses a filter of degree>4 but this can be changed to any value. 
-
-If you do not wish to use a filter, set eval=FALSE below.
-
-```{r, eval=TRUE}
-# the dynamic network animations take a while to run, so for this example we will exclude nodes with degree less than 5
-# skip this step if you would like to visualize the full network
-vs <- vs %>% 
-  filter(degree>4) %>%
-  mutate(vertex.id = as.numeric(factor(username)))
-
-node_ids5 <- vs %>% select(vertex.id, username) %>% unique()
-
-es <- es %>% 
-  select(-head, -tail) %>%
-  left_join(node_ids5, by=c('from'='username')) %>% 
-  rename(head = vertex.id) %>%
-  left_join(node_ids5, by=c('to'='username')) %>% 
-  rename(tail = vertex.id) %>%
-  filter(head %in% node_ids5$vertex.id & tail %in% node_ids5$vertex.id) %>%
-  select(onset,terminus,tail,head,from,to,text,edge_type)
-
-
-```
-
 # Create a dynamic network object
 
 Includes the edge and node attributes needed for the visualization.
@@ -195,37 +172,38 @@ net1.dyn <- networkDynamic(edge.spells=es,
 
 ```
 
-# Forward Paths
+
+# Path Visualizations
 
 ```{r}
 
-actor = c(252) # 252 is the integer ID for RepKrajewski
+actor = c(33) # 33 is the integer ID for DeAngelisCorey
 
 # extract the forward reachable paths from a node
-RepKrajewski_fwd <- tPath(net1.dyn,
-                          v = actor,
-                          direction = "fwd",
-                          start = 0,
-                          end = max(es$terminus))
+actor_fwd <- tPath(net1.dyn,
+                   v = actor,
+                   direction = "fwd",
+                   start = 0,
+                   end = max(es$terminus))
 
 ```
 
 ## Static visualizations
 
-```{r fwd-plot1}
-plot(RepKrajewski_fwd)
+```{r fwd-plot1, eval=FALSE}
+plot(actor_fwd)
 
 ```
 
-```{r fwd-plot2}
-plot(transmissionTimeline(RepKrajewski_fwd,
+```{r fwd-plot2, error=FALSE}
+plot(transmissionTimeline(actor_fwd,
                      jitter=TRUE,
-                     main='Forward paths of iandprior'))
+                     main='Paths of @DeAngelisCorey'))
 ```
 
-```{r fwd-plot3}
+```{r fwd-plot3, eval=FALSE}
 plotPaths(net1.dyn,
-          RepKrajewski_fwd,
+          actor_fwd,
           displaylabels=FALSE,
           vertex.col="white",
           edge.label.col = rgb(0,0,0,0))
@@ -236,20 +214,20 @@ plotPaths(net1.dyn,
 ```{r dyn-fwd-plot-prep}
 
 # pull out the vertex.ids and tdist (onset must be greater than this)
-Krajewski <- as.data.frame(RepKrajewski_fwd) %>%
+actor <- as.data.frame(actor_fwd) %>%
   mutate(vertex.id = row_number()) %>%
   filter(tdist != 'Inf') %>%
   select(vertex.id, tdist)
 
-# tail must be an element of Krajewski$vertex.id and
+# tail must be an element of actor$vertex.id and
 # the corresponding onset must be greater or equal to the tdist associated with that vertex.id
-es.Krajewski <- es %>%
-  right_join(Krajewski, by = c("tail" = "vertex.id")) %>%
+es.actor <- es %>%
+  right_join(actor, by = c("tail" = "vertex.id")) %>%
   filter(onset>=tdist)
 
 # filter nodes--keep only those in edgelist
 vs2 <- vs %>%
-  filter(vertex.id %in% es.Krajewski$tail | vertex.id %in% es.Krajewski$head) %>%
+  filter(vertex.id %in% es.actor$tail | vertex.id %in% es.actor$head) %>%
   mutate(vertex.id = as.numeric(factor(username)),
          att = ifelse(onset<10,0,1))
 
@@ -257,7 +235,7 @@ vs2 <- vs %>%
 node_ids2 <- vs2 %>% select(vertex.id, username) %>% unique()
 
 # match edgelist with new node ids
-es2 <- es.Krajewski %>%
+es2 <- es.actor %>%
   select(-head, -tail) %>%
   left_join(node_ids2, by=c('from'='username')) %>%
   rename(head = vertex.id) %>%
@@ -306,10 +284,7 @@ render.d3movie(net2.dyn,
                        "<b>Type:</b>", (slice %e% "edge_type"), "<br>",
                        "<b>Text:</b>", (slice %e% "text"))
                  },
-               vertex.cex = function(slice) {
-                 case_when((slice %v% "att" == TRUE) ~ .3,  # verified nodes are green, all others are grey
-                           (slice %v% "att" == FALSE) ~ .6)
-                 }, # add sizing by attrbute
+               vertex.cex = .3, # add sizing by attrbute
                     # vertex.cex = .3, # add sizing by attrbute
                vertex.col =  function(slice) {
                  case_when((slice %v% "verified" == TRUE) ~ 'green',  # verified nodes are green, all others are grey
@@ -317,8 +292,8 @@ render.d3movie(net2.dyn,
                             is.na(slice %v% "verified") ~ 'grey')
                  },
                vertex.sides =  function(slice) {
-                 case_when((slice %v% "username" == "RepKrajewski") ~ 3,   # RepKrajewski is a triangle
-                           (slice %v% "username" != "RepKrajewski") ~ 50)  # everyone else is a circle
+                 case_when((slice %v% "username" == "DeAngelisCorey") ~ 3,   # DeAngelisCorey is a triangle
+                           (slice %v% "username" != "DeAngelisCorey") ~ 50)  # everyone else is a circle
                  },  # change node shapes by attribute
                vertex.tooltip = function(slice) {     # display node attributes when you click on an node
                  paste("<b>Username:</b>",    (slice %v% "username") ,    "<br>",
@@ -330,7 +305,7 @@ render.d3movie(net2.dyn,
                  #label = net1.dyn %v% "username",
                  #label.cex = .6,
                  #label.col = "blue",
-               main = 'School choice ties: forward paths from RepKrajewski',
+               main = 'school choice ties: @DeAngelisCorey forward paths',
                output.mode = 'htmlWidget')
 
 ```
