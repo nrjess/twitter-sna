@@ -127,10 +127,6 @@ es <- edges %>%
             terminus = max(terminus),  
             edge_type = toString(unique(edge_type)),  # lists for multiple edge_types (ex- retweet, mention)
             text = toString(unique(text))) %>%   # list text of multiple tweets where applicable
-  rename(tail=head,   # switch directions
-         head=tail,
-         from=to,
-         to=from) %>%  
   select(onset,terminus,tail,head,from,to,text,edge_type) %>%
   as.data.frame()
 
