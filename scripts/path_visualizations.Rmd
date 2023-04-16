@@ -264,7 +264,7 @@ nrow(as.data.frame(net2.dyn))
 # set time interval
 net2.dyn <- compute.animation(net2.dyn,
                               slice.par=list(start=min(es2$onset),
-                                             end=max(es2$terminus),
+                                             end=max(es2$onset),
                                              interval=1,  # currently daily, set to 7 for weekly
                                              aggregate.dur=1,  # currently daily, set to 7 for weekly
                                              rule="earliest"))
