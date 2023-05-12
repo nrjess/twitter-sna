@@ -1,6 +1,6 @@
 ---
 title: "twitter-sna: tools for social network analysis with twitter data"
-author: "Nicole Jess & Yuqing Liu"
+author: "Nicole Jess, Yuqing Liu, & Shimeng Dai"
 output: github_document
 
 ---

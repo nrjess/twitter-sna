@@ -1,6 +1,6 @@
 twitter-sna: tools for social network analysis with twitter data
 ================
-Nicole Jess & Yuqing Liu
+Nicole Jess, Yuqing Liu, & Shimeng Dai
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
