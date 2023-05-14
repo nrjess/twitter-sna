@@ -53,3 +53,4 @@ data/*.csv
 
 # Omit html output files from GitHub.
 scripts/*.html
+.DS_Store
