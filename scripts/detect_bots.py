@@ -52,7 +52,7 @@ for index, row in df.iterrows():
     
     
 df["score"] = score 
-df.to_csv("/Users/shimeng/Desktop/Michigan State/Fourth semester/Praticum/user_data/df_result.csv") 
+df.to_csv("") # save the dataframe
  
     
     
