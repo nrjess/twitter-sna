@@ -52,5 +52,5 @@ data/*.Rds
 data/*.csv
 
 # Omit html output files from GitHub.
-scripts/*.html
+# scripts/*.html
 .DS_Store
