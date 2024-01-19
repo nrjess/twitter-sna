@@ -99,7 +99,6 @@ higher) level access. To set up such a project, follow this link and set
 up a project with the API access level that is appropriate for your
 project: [Getting
 Started](https://developer.twitter.com/en/docs/twitter-api/getting-started/about-twitter-api).
-Pay attention to the tweet caps - Pull
 
 ### Storing your Twitter access tokens
 
