@@ -94,33 +94,36 @@ install.packages(pkgs = c("tidyverse", "academictwitteR", "rtweet", "tidytags",
 ## Access to Twitter Data
 
 To scrape data from twitter using the method in this repository, one
-must have a Twitter developer account with a project that has Academic
-Research access. To set up such a project, follow the directions here:
-[Academic Research
-access](https://developer.twitter.com/en/products/twitter-api/academic-research).
+must have a Twitter developer account with a project that has Basic (or
+higher) level access. To set up such a project, follow this link and set
+up a project with the API access level that is appropriate for your
+project: [Getting
+Started](https://developer.twitter.com/en/docs/twitter-api/getting-started/about-twitter-api).
+Pay attention to the tweet caps - Pull
 
 ### Storing your Twitter access tokens
 
 It is not safe to hard code your bearer token in your R script or have
 your bearer token in your command history.
 
-Running the code below opens the .Renviron file and provides
-instructions on how to add the bearer token, which requires the addition
-of a line in the .Renviron file, following the format:
-TWITTER_BEARER=YOURTOKENHERE
+Running the code below opens the .Renviron file, add a line in the file,
+following the format: TWITTER_BEARER=YOURBEARERTOKENHERE, replacing
+YOURBEARERTOKENHERE with your actual bearer token retrieved from
 
 ``` r
-academictwitteR::set_bearer()
+usethis::edit_r_environ()
 ```
 
-Save the changes to the environment and close the file. Go to Session
-and Restart R.
+Save the changes to .Renviron and close the file. Go to Session and
+Restart R.
 
 Now you will have a system environment variable in memory that contains
-your bearer token. You can retrieve it using the following command.
+your bearer token. You can retrieve it as needed later using the
+following command: Sys.getenv(“TWITTER_BEARER”). This should not be
+printed
 
 ``` r
-academictwitteR::get_bearer()
+Sys.getenv("TWITTER_BEARER")
 ```
 
 ## Software Information
