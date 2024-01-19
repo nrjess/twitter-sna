@@ -1,11 +1,11 @@
 twitter-sna: tools for social network analysis with twitter data
 ================
-Nicole Jess, Yuqing Liu, & Shimeng Dai
+Nicole Jess, Yuqing Liu, Hasan Gokberk Bayhan, & Shimeng Dai
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 This GitHub repository is intended to create social network datasets
-based on data scraped from twitter and provide some useful tools for
+based on data pulled from twitter and provide some useful tools for
 analysis.
 
 ## Obtain the Repository from GitHub
@@ -43,20 +43,25 @@ project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-P
       from GitHub.
   - `scripts`: This folder is where you can find the key files you will
     need to use if you want to run these analyses on your own computer.
-    - `scrape_tweets.RMD` This script creates a user-defined query,
-      scrapes data from Twitter, and saves the data to the user’s local
+    - `pull_tweets.RMD` This script creates a user-defined query, pulls
+      data from Twitter, and saves the data to the user’s local
       repository.
     - `create_social_network_data.RMD` This script restructures tweet
       data into a format that is useful for social network analysis
       (edgelists and nodelists).
+    - `sentiment_analysis.RMD` This script codes tweets for sentiment.
+      This example codes for positive and negative sentiments but tweets
+      can be coded in many other ways.
+    - `keyword_coding.RMD` This script codes tweets for keyword use. but
+      tweets can be coded in many other ways.  
     - `dynamic_visualizations.RMD` This script creates a dynamic
       visualization that shows the changes in the network over time.
     - `path_visualizations.RMD` This script creates a visualizations of
       paths to explore the influence of individuals in a dynamic
       network.
-    - `sentiment analysis.RMD` This script codes tweets for sentiment
-      for use in influence models. This example codes for positive and
-      negative sentiments but tweets can be coded in many other ways.
+    - `influence_model.RMD` This script runs an influence model. but
+      tweets can be coded in many other ways.
+    - `selection_model.RMD` This script runs a selection model.
   - `.gitignore`: This file tells Git what files to ignore and omit from
     synchronizing with the main repository on GitHub.
   - `LICENSE`: This file contains the terms of the license that applies
@@ -93,8 +98,8 @@ install.packages(pkgs = c("tidyverse", "academictwitteR", "rtweet", "tidytags",
 
 ## Access to Twitter Data
 
-To scrape data from twitter using the method in this repository, one
-must have a Twitter developer account with a project that has Basic (or
+To pull data from twitter using the method in this repository, one must
+have a Twitter developer account with a project that has Basic (or
 higher) level access. To set up such a project, follow this link and set
 up a project with the API access level that is appropriate for your
 project: [Getting
