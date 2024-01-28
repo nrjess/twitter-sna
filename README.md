@@ -84,15 +84,35 @@ that the required inputs have been created.
 
 <html>
 <body>
-  <img src="flow_diagram.png" width="100%" />
 
-  <map name="workflowmap">
-    <area shape="rect" coords="left,top,right,bottom" href="https://github.com/nrjess/twitter-sna/blob/main/scripts/dynamic_visualization.Rmd" alt="Script 1">
-    <area shape="rect" coords="left,top,right,bottom" href="https://github.com/nrjess/twitter-sna/blob/main/scripts/dynamic_visualization.Rmd" alt="Script 2">
-    <!-- Add more areas for other boxes -->
-  </map>
+<img src="flow_diagram.png" width="100%" usemap="#workflowmap" />
+
+<map name="workflowmap">
+  <!-- Area for 'pull_twitter.Rmd' -->
+  <area shape="rect" coords="actual_coords_for_pull_twitter" href="https://github.com/nrjess/twitter-sna/blob/main/scripts/pull_twitter.Rmd" alt="Script for pulling Twitter data">
+
+  <!-- Area for 'create_social_network_data.Rmd' -->
+  <area shape="rect" coords="actual_coords_for_create_social_network_data" href="https://github.com/nrjess/twitter-sna/blob/main/scripts/create_social_network_data.Rmd" alt="Script for creating social network data">
+
+  <!-- Repeat this process for each script in the diagram -->
+  <!-- Example for 'sentiment_analysis.Rmd' -->
+  <area shape="rect" coords="actual_coords_for_sentiment_analysis" href="https://github.com/nrjess/twitter-sna/blob/main/scripts/sentiment_analysis.Rmd" alt="Script for sentiment analysis">
+
+  <!-- Example for 'keyword_coding.Rmd' -->
+  <area shape="rect" coords="actual_coords_for_keyword_coding" href="https://github.com/nrjess/twitter-sna/blob/main/scripts/keyword_coding.Rmd" alt="Script for keyword coding">
+
+  <!-- Example for 'dynamic_visualizations.Rmd' -->
+  <area shape="rect" coords="actual_coords_for_dynamic_visualizations" href="https://github.com/nrjess/twitter-sna/blob/main/scripts/dynamic_visualizations.Rmd" alt="Script for dynamic visualizations">
+
+  <!-- Example for 'path_visualizations.Rmd' -->
+  <area shape="rect" coords="actual_coords_for_path_visualizations" href="https://github.com/nrjess/twitter-sna/blob/main/scripts/path_visualizations.Rmd" alt="Script for path visualizations">
+
+  <!-- Add more areas for the remaining scripts -->
+</map>
+
 </body>
 </html>
+
 
 
 
