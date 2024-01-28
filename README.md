@@ -78,9 +78,6 @@ project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-P
 
 ### Flow Diagram
 
-This diagram shows the sequence that scripts should be run to ensure
-that the required inputs have been created.
-
 
 <!DOCTYPE html>
 <html lang="en">
