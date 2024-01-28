@@ -81,8 +81,18 @@ project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-P
 This diagram shows the sequence that scripts should be run to ensure
 that the required inputs have been created.
 
-<img src="flow_diagram.png" width="100%" />
 
+<html>
+<body>
+  <img src="flow_diagram.png" width="100%" />
+
+  <map name="workflowmap">
+    <area shape="rect" coords="left,top,right,bottom" href="https://github.com/nrjess/twitter-sna/blob/main/scripts/dynamic_visualization.Rmd" alt="Script 1">
+    <area shape="rect" coords="left,top,right,bottom" href="https://github.com/nrjess/twitter-sna/blob/main/scripts/dynamic_visualization.Rmd" alt="Script 2">
+    <!-- Add more areas for other boxes -->
+  </map>
+</body>
+</html>
 
 
 
