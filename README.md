@@ -35,7 +35,8 @@ in normal text. The repository is set up as an [RStudio
 project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-Projects).
 
 - `twitter-sna`: This is the root folder for the repository.
-  - `data`: This folder is where the data files produced by our scripts
+  - [data](https://github.com/nrjess/twitter-sna/tree/main/data).
+: This folder is where the data files produced by our scripts
     will be stored. This is a standard folder for R package structures.
     - `Placeholder.text` This text file is just present to ensure that
       the `data` subfolder will be created when you clone the repository
