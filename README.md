@@ -42,7 +42,7 @@ project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-P
       the `data` subfolder will be created when you clone the repository
       or extract files from ZIP file copy of the repository obtained
       from GitHub.
-  - `scripts`: This folder is where you can find the key files you will
+  - [scripts](https://github.com/nrjess/twitter-sna/tree/main/scripts): This folder is where you can find the key files you will
     need to use if you want to run these analyses on your own computer.
     - `pull_tweets.RMD` This script creates a user-defined query, pulls
       data from Twitter, and saves the data to the user’s local
