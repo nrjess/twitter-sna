@@ -1,0 +1,185 @@
+---
+title: "Pulling Tweets"
+author: "Nicole Jess"
+date: "`r format(Sys.time(), '%Y-%m-%d, %H:%M:%S %Z')`"
+output: 
+  bookdown::html_document2:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+    code_folding:  hide
+params: 
+  outfile: "scrape_tweets.html"
+---
+
+# Purpose
+The script pulls Twitter data based on parameters defined by the user and saves a 
+copy to an .RData file stored in the local repository where we can easily access 
+it from other scripts.
+
+```{r global-options, include=FALSE}
+# Create a custom chunk hook/option for controlling font size in chunk & output.
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  ifelse(options$cfsize != "normalsize", paste0("\n \\", options$cfsize,"\n\n", 
+                                              x, "\n\n \\normalsize"), x)
+  })
+
+# Global chunk options (over-ridden by local chunk options)
+knitr::opts_chunk$set(include  = TRUE, echo = TRUE, error = TRUE, 
+                      message = FALSE, warning = FALSE, 
+                      cfsize = "footnotesize", fig.height=8)
+
+# Declare location of this script relative to the project root directory.
+here::i_am(path = "scripts/pull_tweets.Rmd")
+```
+
+# Load R Packages
+Load contributed R packages that we need to get additional functions. 
+
+``` {r load-packages}
+library(tidyverse)          # dplyr, ggplot2, tidyr, etc.
+library(here)               # for here()
+library(httr)               # to make HTTP requests to the Twitter API
+library(jsonlite)           # to work with JSON object
+library(knitr)              # for kable()
+library(lubridate)          # for floor_date()
+```
+
+
+# Set up authentication
+
+```{r auth}
+
+headers = c(`Authorization` = sprintf('Bearer %s', Sys.getenv("TWITTER_BEARER")))
+
+```
+
+
+# Define your query
+
+Multiple keywords can be used as shown:
+
+* query = "cat OR dog" returns tweets that contain the word "cat" or the word "dog"
+* query = "cat dog" returns tweets that contain both words 
+
+The query can also be restricted by users, exclude keywords, and filter by tweet 
+types. Full list of options shown here: [Building Queries](https://developer.twitter.com/en/docs/twitter-api/tweets/search/integrate/build-a-query)
+
+``` {r define time intervals}
+
+
+query = "((graduate OR grad) (student OR assistant OR worker) (union OR unionization OR wages OR healthcare OR NLRB OR labor OR contract OR strike))
+         (is:retweet OR is:reply OR is:quote OR has:mentions)
+         lang:en"
+
+```
+
+## Check tweet counts
+
+The code below will allow you to check the number of tweets that will be captured
+by the defined query. This will help you refine your query and understand the amount
+amount of data a query will pull without actually pulling the data, which would count 
+toward your monthly Tweet cap.
+
+```{r total-tweets}
+
+params_count = list(`query` = query,
+                    `granularity` = 'day')
+
+count <- httr::GET(url = 'https://api.twitter.com/2/tweets/counts/recent',
+                   httr::add_headers(.headers=headers),
+                   query = params_count)
+
+count_data <- httr::content(count,
+                            as = 'parsed',
+                            type = 'application/json',
+                            simplifyDataFrame = TRUE) %>% pluck("data")
+
+sum(count_data$tweet_count)
+
+```
+
+The total number of tweets pulled with this query is `r sum(count_data$tweet_count)`.
+
+Figure \@ref(fig:timeseries-plot) shows the number of tweets plotted over time.
+
+```{r timeseries-plot, fig.width=7, fig.height=4, fig.cap=FC}
+
+# Figure caption
+FC <- paste0("\\label{fig:timeseries-plot}",
+            "Timeseries plot of tweets over time ")
+
+ggplot(data = count_data,
+       aes(x=as.Date(end), y=tweet_count, group=1)) +
+  geom_line() +
+  labs(x="Date", y="number of tweets") +
+  scale_x_date(date_breaks = "1 day",
+               date_labels = "%m-%d-%Y") +
+  theme_classic()
+
+```
+
+
+# Pull tweets
+
+```{r tweet-pull}
+
+# first page
+params_pull = list(`query` = query,
+                   `max_results` = '100', # max is 100, use pagination to pull larger numbers
+                   `tweet.fields` = 'author_id,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,public_metrics,text',
+                   `user.fields` = 'created_at,description,entities,id,location,name,public_metrics,username,verified',
+                   `expansions` = 'author_id,entities.mentions.username,in_reply_to_user_id,referenced_tweets.id.author_id',
+                   `next_token` = NULL)
+
+pull <- httr::GET(url = 'https://api.twitter.com/2/tweets/search/recent',
+                  httr::add_headers(.headers = headers),
+                  query = params_pull) %>%
+  httr::content(as = 'parsed',
+                type = 'application/json',
+                simplifyDataFrame = TRUE)
+
+token <- pull$meta$next_token # save next token
+pull_data <- pull %>% pluck("data") # extract data element to dataframe
+
+
+# pagination
+while(!is.null(token)){
+ 
+  params_pull = list(`query` = query,
+                   `max_results` = '100',
+                   `tweet.fields` = 'author_id,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,public_metrics,text',
+                   `user.fields` = 'created_at,description,entities,id,location,name,public_metrics,username,verified',
+                   `expansions` = 'author_id,entities.mentions.username,in_reply_to_user_id,referenced_tweets.id.author_id',
+                   `next_token` = token)
+  
+  new_pull <- httr::GET(url = 'https://api.twitter.com/2/tweets/search/recent',
+                  httr::add_headers(.headers = headers),
+                  query = params_pull) %>%
+    httr::content(as = 'parsed',
+                  type = 'application/json',
+                  simplifyDataFrame = TRUE)
+  
+  token <- new_pull$meta$next_token # save next token
+  new_pull_data <- new_pull %>% pluck("data") # extract data element to dataframe
+  pull_data <- bind_rows(pull_data, new_pull_data) # merge with previous pages
+}
+  
+
+```
+
+
+# Save Data
+
+```{r save-data}
+# here() creates a path relative to the location of the twitter-sna.proj file
+# that will be portable across local repositories on different computers.
+
+save(pull_data, file=here(paste0("data/tweets_", Sys.Date(), ".Rdata")))
+
+
+```
+
