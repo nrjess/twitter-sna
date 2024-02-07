@@ -40,8 +40,6 @@ Load contributed R packages that we need to get additional functions.
 ``` {r load-packages}
 library(tidyverse)          # dplyr, ggplot2, tidyr, etc.
 library(here)               # for here()
-library(knitr)              # for kable()
-library(academictwitteR)    # for get_user_profile()
 library(linkcomm)           # for integer.edgelist()
 library(igraph)             # for graph_from_data_frame()
 
@@ -50,121 +48,37 @@ library(igraph)             # for graph_from_data_frame()
 # Load data
 
 ``` {r load-data}
-# Data file created by "scripts/scrape_tweets.Rmd"
-load(file=here("data/t2.RData"))
-load(file=here("data/tweet_authors.RData"))
+# Data files created by "scripts/pull_tweets.Rmd"
+load(file=here("data/tweets_2024-02-07.RData"))
+
+```
+
+# Set up authentication
+```{r auth}
+
+headers = c(`Authorization` = sprintf('Bearer %s', Sys.getenv("TWITTER_BEARER")))
+
 ```
 
 # Edgelist
 
-## Replys
-
-```{r reply-edges}
-replies <- t2 %>%
-  select(id_str, created_at, in_reply_to_user_id_str, full_text) %>%
-  drop_na() %>%
-  mutate(edge_type="replies") %>%
-  left_join(tweet_authors, by=c("id_str"="id")) %>%
-  rename(tweet_id=id_str,
-         from=author_id,
-         to=in_reply_to_user_id_str,
-         text=full_text) %>%
-  relocate(tweet_id, created_at, from, to, text, edge_type)
+```{r edges}
+edgelist <- pull_data %>%
+  unnest(entities) %>%
+  unnest_longer(mentions) %>%
+  mutate(to=mentions$id) %>%
+  rename(tweet_id=id,
+         from=author_id) %>%
+  drop_na(to,from) %>%
+  select(tweet_id, created_at, from, to, text)
 
 ```
 
-## Retweets
-```{r retweet-edges}
-
-retweets<- t2$retweeted_status %>%
-  map("user") %>%
-  map_df(bind_rows) %>%
-  mutate(tweet_id=t2$id_str,
-         text=t2$full_text,
-         created_at=t2$created_at,
-         edge_type="retweets") %>%
-  drop_na(id_str) %>%
-  left_join(tweet_authors, by=c("tweet_id"="id")) %>%
-  rename(from=author_id,
-         to=id_str) %>%
-  select(tweet_id, created_at, from, to, text, edge_type)
-
-
-```
-
-## Quotes
-```{r quote-edges}
-
-quotes<- t2$quoted_status %>%
-  map("user") %>%
-  map_df(bind_rows) %>%
-  mutate(tweet_id=t2$id_str,
-         text=t2$full_text,
-         created_at=t2$created_at,
-         edge_type="quotes") %>%
-  drop_na(id_str) %>%
-  left_join(tweet_authors, by=c("tweet_id"="id")) %>%
-  rename(from=author_id,
-         to=id_str) %>%
-  select(tweet_id, created_at, from, to, text, edge_type)
-
-```
-
-
-## Mentions
-```{r mention-edges}
-
-mentions <- t2$entities %>%
-  map("user_mentions") %>%
-  map("id_str") %>%
-  plyr::ldply(rbind) %>%
-  mutate(tweet_id=t2$id_str,
-         text=t2$full_text,
-         created_at=t2$created_at,
-         edge_type="mentions") %>%
-  pivot_longer(-c("tweet_id","text","created_at","edge_type"), values_to="to") %>%
-  drop_na(to) %>%
-  left_join(tweet_authors, by=c("tweet_id"="id")) %>%
-  rename(from=author_id) %>%
-  select(tweet_id, created_at, from, to, text, edge_type)  
-
-```
-
-## Combine edge types
-
-You can remove edge types that are not of interest for your project. For example, if you do not want replies to be counted as edges in your network, delete "replies" from the code below.
-
-```{r all-edges}
-
-# combine all edge types, exclude any edge types that you do not want to include in your edgelist
-edgelist <- bind_rows(replies,
-                      retweets,
-                      quotes,
-                      mentions)
-
-# drop edges with missing data in 'from' or 'to'
-edgelist <- edgelist %>%
-  drop_na(from,to)
-
-```
-
-Altogether, this gives us a total of `r nrow(edgelist)` edges in this network. Table \@ref(tab:edges-table) shows the total number of each edge type in this network.
-
-```{r edges-table}
-
-TC <- paste0("Total edges by edge type ")
-
-table(edgelist$edge_type) %>%
-  addmargins(1,sum) %>%
-  kable(col.names=c("edge type","n"),
-        caption=TC)
-
-
-```
+Altogether, this gives us a total of `r nrow(edgelist)` edges in this network. 
 
 # Integer edgelist
 
-Some of the tools we work with require that the edge IDs are integers starting with 1. This code creates and edgelist that meets these requirements.
+Some of the tools we work with require that the edge IDs are integers starting with 1. This code creates an edgelist that meets these requirements.
 
 ```{r integer-edges}
 
@@ -198,13 +112,39 @@ outdegree <- int_edges %>%
 
 # Nodelist
 
-This code creates a list of all the nodes in the network and scrapes data from the Twitter user profiles. 
+This code creates a list of all the nodes in the network and pulls data from the Twitter user profiles. 
 
 ```{r profile-scrape}
-nodelist <- c(edgelist$from, edgelist$to) %>%
-  unique() %>%
-  get_user_profile(get_bearer()) %>%
-  select(-starts_with("entities"))
+
+ids <- c(edgelist$from, edgelist$to) %>% unique()
+
+#ids <- paste(ids, collapse = ',') # doesn't work when n>100 (user rate limit is 100)
+                                   # but I think we should be able to go up to 500 (rate limit for apps)
+
+#You can do application-only authentication using your apps consumer API keys, or by using a App only Access Token (Bearer Token). 
+
+###############
+# workaround - split into chunks and run one chunk every 24 hours
+ids <- split(ids, ceiling(seq_along(ids)/100)) # split ids into chunks of length 100
+ids <- paste(ids$`1`, collapse = ',') # we can run one chunk every 24 hours
+###############
+
+params_users <- list(`ids` = ids,
+                     `user.fields` = 'created_at,description,entities,id,location,name,public_metrics,username,verified')
+
+users <- httr::GET('https://api.twitter.com/2/users',
+                   httr::add_headers(.headers=headers),
+                   query = params_users)
+
+users_data <- httr::content(users,
+                            as = 'parsed',
+                            type = 'application/json',
+                            simplifyDataFrame = TRUE)
+
+nodelist <- users_data %>%
+  pluck("data") %>%
+  mutate(follower_count=public_metrics$followers_count) %>%
+  select(id, username, name, description, created_at, verified, follower_count)
 
 # match integer IDs to node attributes
 int_nodes <- network1$nodes %>%
