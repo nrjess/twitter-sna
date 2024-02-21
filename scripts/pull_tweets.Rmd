@@ -49,6 +49,16 @@ library(lubridate)          # for floor_date()
 ```
 
 
+# Load data
+
+``` {r load-data}
+# Data files previously created by "scripts/pull_tweets.Rmd"
+
+load(file=here("data/all_tweets.RData"))
+
+```
+
+
 # Set up authentication
 
 ```{r auth}
@@ -171,6 +181,16 @@ while(!is.null(token)){
 
 ```
 
+# Merge with previous pulls
+
+```{r tweet-merge}
+
+all_tweets <- bind_rows(all_tweets, 
+                        pull_data) %>%
+  distinct()
+  
+
+```
 
 # Save Data
 
@@ -178,7 +198,7 @@ while(!is.null(token)){
 # here() creates a path relative to the location of the twitter-sna.proj file
 # that will be portable across local repositories on different computers.
 
-save(pull_data, file=here(paste0("data/tweets_", Sys.Date(), ".Rdata")))
+save(all_tweets, file=here(paste0("data/all_tweets.Rdata")))
 
 
 ```
