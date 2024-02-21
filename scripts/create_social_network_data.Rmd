@@ -49,7 +49,8 @@ library(igraph)             # for graph_from_data_frame()
 
 ``` {r load-data}
 # Data files created by "scripts/pull_tweets.Rmd"
-load(file=here("data/tweets_2024-02-07.RData"))
+
+load(file=here("data/all_tweets.RData"))
 
 ```
 
@@ -63,7 +64,8 @@ headers = c(`Authorization` = sprintf('Bearer %s', Sys.getenv("TWITTER_BEARER"))
 # Edgelist
 
 ```{r edges}
-edgelist <- pull_data %>%
+
+edgelist <- all_tweets %>%
   unnest(entities) %>%
   unnest_longer(mentions) %>%
   mutate(to=mentions$id) %>%
