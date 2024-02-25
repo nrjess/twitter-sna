@@ -52,8 +52,9 @@ library(lubridate)          # for floor_date()
 # Load data
 
 ``` {r load-data}
-# Data files previously created by "scripts/pull_tweets.Rmd"
+# Load data previously created by "scripts/pull_tweets.Rmd" if the data file exists
 
+all_tweets <- NULL
 load(file=here("data/all_tweets.RData"))
 
 ```
