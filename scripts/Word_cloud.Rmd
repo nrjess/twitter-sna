@@ -1,0 +1,62 @@
+---
+title: "word_cloud"
+output: html_document
+date: "2024-02-24"
+---
+```{r}
+
+# Required libraries
+library(tm)
+library(SnowballC)
+library(wordcloud)
+library(RColorBrewer)
+
+# Load the dataset
+tweets <- read.csv("/Users/shimeng/Desktop/Michigan_State/Sixth semester/RA work/SNA workshop/scrape/tweet3.csv", stringsAsFactors = FALSE)
+
+tweets <- na.omit(tweets)
+
+
+texts <- tweets$text
+
+
+# Create a text corpus
+corpus <- Corpus(VectorSource(texts))
+
+# Preprocess the text: convert to lowercase, remove punctuation
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removePunctuation)
+
+# Remove standard English stopwords
+corpus <- tm_map(corpus, removeWords, stopwords("en"))
+
+# Remove custom stopwords
+custom_stopwords <- c("brown") # Define your custom stopwords here
+corpus <- tm_map(corpus, removeWords, custom_stopwords)
+
+# Strip extra whitespace
+corpus <- tm_map(corpus, stripWhitespace)
+
+# Create a term-document matrix
+tdm <- TermDocumentMatrix(corpus)
+
+# Convert term-document matrix to matrix
+m <- as.matrix(tdm)
+# Calculate word frequency
+word.freq <- rowSums(m)
+# Sort frequencies in decreasing order
+word.freq <- sort(word.freq, decreasing = TRUE)
+
+# Generate the word cloud
+set.seed(1234) # Ensuring reproducibility
+wordcloud(names(word.freq), word.freq, min.freq = 1,
+          max.words = 200, random.order = FALSE, rot.per = 0.35,
+          colors = brewer.pal(8, "Dark2"))
+
+
+
+```
+
+
+
+
