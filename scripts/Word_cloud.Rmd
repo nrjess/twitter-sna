@@ -12,7 +12,7 @@ library(wordcloud)
 library(RColorBrewer)
 
 # Load the dataset
-tweets <- read.csv("/Users/shimeng/Desktop/Michigan_State/Sixth semester/RA work/SNA workshop/scrape/tweet3.csv", stringsAsFactors = FALSE)
+tweets <- read.csv("tweet.csv", stringsAsFactors = FALSE)
 
 tweets <- na.omit(tweets)
 
