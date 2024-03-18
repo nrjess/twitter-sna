@@ -133,6 +133,34 @@ ggplot(data = count_data,
 
 ```
 
+# Pilot Pull
+
+The code below will allow you to see some of the tweets that will be captured
+by the defined query. Examining the text of the tweets will help you determine 
+whether your query needs to be further refined to exclude irrelevant tweets or 
+to capture additional tweets that are not pulled by the current query.
+
+```{r test}
+
+params_pull = list(`query` = query,
+                   `max_results` = '50',
+                   `tweet.fields` = 'author_id,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,public_metrics,text',
+                   `user.fields` = 'created_at,description,entities,id,location,name,public_metrics,username,verified',
+                   `expansions` = 'author_id,entities.mentions.username,in_reply_to_user_id,referenced_tweets.id.author_id',
+                   `next_token` = NULL)
+
+pull <- httr::GET(url = 'https://api.twitter.com/2/tweets/search/recent',
+                  httr::add_headers(.headers = headers),
+                  query = params_pull) %>%
+  httr::content(as = 'parsed',
+                type = 'application/json',
+                simplifyDataFrame = TRUE)
+
+pull_data <- pull %>% pluck("data") # extract data element to dataframe
+
+```
+
+
 
 # Pull tweets
 
