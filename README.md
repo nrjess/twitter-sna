@@ -142,15 +142,6 @@ Knitting our other R Markdown scripts from this repository generates
 HTML output files containing explanatory text, R code, plus R output
 (both text and graphics).
 
-- We use [RStudio](www.rstudio.org) to work with R and R markdown files.
-  The software chain that connects scripts to output files depends on
-  which output format you are using. We use the following:
-  - **Rmd file \> RStudio \> R \> rmarkdown \> knitr \> md file \>
-    pandoc \> html file**
-- We use [pandoc](https://pandoc.org) for this document. A version of
-  pandoc comes bundled with RStudio, but if you want the most recent
-  version, download it from <https://pandoc.org/>.
-
 ## References
 
 Bryan, J. (2018). Excuse me, do you have a moment to talk about version
