@@ -103,14 +103,14 @@ start [label = 'Start Here']
 
 # Script file node style & nodes.
 node [shape = box, style = filled, fixedsize = FALSE]
-pull [label = 'scripts/\npull_twitter.Rmd', fillcolor = lightblue]
-data [label = 'scripts/\ncreate_social_network_data.Rmd', fillcolor = lightblue]
-dviz [label = 'scripts/\ndynamic_visualizations.Rmd', fillcolor = lightblue]
-fwd [label = 'scripts/\npath_visualizations.Rmd', fillcolor = lightblue]
-sent [label = 'scripts/\nsentiment_analysis.Rmd', fillcolor = lightblue]
-key [label = 'scripts/\nkeyword_coding.Rmd', fillcolor = lightblue]
-infl [label = 'scripts/\ninfluence_model.Rmd', fillcolor = lightblue]
-sel [label = 'scripts/\nselection_model.Rmd', fillcolor = lightblue]
+pull [label = 'pull_twitter', fillcolor = lightblue]
+data [label = 'create_social_network_data', fillcolor = lightblue]
+dviz [label = 'dynamic_visualizations', fillcolor = lightblue]
+fwd [label = 'path_visualizations', fillcolor = lightblue]
+sent [label = 'sentiment_analysis', fillcolor = lightblue]
+key [label = 'keyword_coding', fillcolor = lightblue]
+infl [label = 'influence_model', fillcolor = lightblue]
+sel [label = 'selection_model', fillcolor = lightblue]
 
 # Visible Edges
 start -> pull
