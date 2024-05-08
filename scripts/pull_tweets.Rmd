@@ -8,7 +8,7 @@ output:
     toc_depth: 3
     toc_float: true
     number_sections: true
-    code_folding:  hide
+    code_folding:  show
 params: 
   outfile: "scrape_tweets.html"
 ---
@@ -50,11 +50,11 @@ library(lubridate)          # for floor_date()
 
 
 # Load data from previous pulls
-This process is structured to be useful with a a Twitter developer account with 
+This process is structured to be useful with a Twitter developer account with 
 Basic level access. Currently, this gives the user access to data from Tweets posted 
 in the last 7 days. So in order to gather data over a longer time interval, you may need 
 to run this script multiple times over the course of several weeks. Note that you 
-will get an error here if this is your first pull because there is no previous data 
+will get an error here if this is your first pull because there is no previous data to load
 but you will be able to continue with the rest of the process described in this script.
 
 ``` {r load-data}
@@ -122,7 +122,8 @@ sum(count_data$tweet_count)
 
 The total number of tweets pulled with this query is `r sum(count_data$tweet_count)`.
 
-Figure \@ref(fig:timeseries-plot) shows the number of tweets plotted over time.
+Figure \@ref(fig:timeseries-plot) shows the number of tweets that would be pulled 
+plotted over time.
 
 ```{r timeseries-plot, fig.width=7, fig.height=4, fig.cap=FC}
 
@@ -143,11 +144,17 @@ ggplot(data = count_data,
 ## Pilot Pull
 
 The code below will allow you to pull a small number of the tweets that will be 
-captured by the defined query. Examining the text of the tweets will help you 
+captured by the defined query. Examining the text of the tweets will help you to
 determine whether your query needs to be further refined to exclude irrelevant 
 tweets or expanded to capture additional tweets that are not pulled by the current query.
 
-```{r test}
+Keep in mind that this will count toward your monthly tweet cap. We set this up 
+to pull 50 tweets so that you can continue to make adjustments to the query and 
+rerun this code until you settle on your final query without using up too much of 
+your monthly tweet cap. You may choose to set the `max_results` field below to a 
+different value to suit the needs of your project.
+
+```{r pilot}
 
 params_pull = list(`query` = query,
                    `max_results` = '50',
@@ -167,8 +174,20 @@ pull_data <- pull %>% pluck("data") # extract data element to dataframe
 
 ```
 
+```{r check pilot data}
+
+head(pull_data)
+
+```
+
 
 # Pull tweets
+
+This is the code that will pull the full data for tweets identified by your query. 
+Be sure that you have tested your query by checking the tweet counts and conducting 
+a pilot pull as described above to ensure that you are happy with your query before 
+proceeding to this step as this may pull a large amount of data.
+
 
 ```{r tweet-pull}
 
@@ -216,7 +235,7 @@ while(!is.null(token)){
 
 ```
 
-# Merge new data with previous pulls
+# Merge new data with previous pull data
 
 ```{r tweet-merge}
 
@@ -227,7 +246,7 @@ all_tweets <- bind_rows(all_tweets,
 
 ```
 
-# Save Data
+# Save data
 
 ```{r save-data}
 # here() creates a path relative to the location of the twitter-sna.proj file

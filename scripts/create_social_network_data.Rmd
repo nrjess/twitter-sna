@@ -47,7 +47,7 @@ library(igraph)             # for graph_from_data_frame()
 ```
 
 # Load data
-This loads the data pulled from Twitter in the [pull_tweets.RMD](https://github.com/nrjess/twitter-sna/blob/main/scripts/pull_tweets.Rmd) 
+This loads the data pulled from Twitter in this script: [pull_tweets.RMD](https://github.com/nrjess/twitter-sna/blob/main/scripts/pull_tweets.Rmd) 
 script.
 
 ``` {r load-data}
@@ -59,7 +59,7 @@ load(file=here("data/all_tweets.RData"))
 
 # Set up authentication
 Authentication is set up using the bearer token that was saved in your .Renviron 
-file in process described on our [README page](https://github.com/nrjess/twitter-sna/tree/main?tab=readme-ov-file#access-to-twitter-data).
+file in the process described on our [README page](https://github.com/nrjess/twitter-sna/tree/main?tab=readme-ov-file#access-to-twitter-data).
 
 ```{r auth}
 
@@ -68,7 +68,7 @@ headers = c(`Authorization` = sprintf('Bearer %s', Sys.getenv("TWITTER_BEARER"))
 ```
 
 # Edgelist
-Interaction information is extraqcted from the Tweet data and restructured into 
+Interaction information is extracted from the Tweet data and restructured into 
 an edgelist.
 
 ```{r edges}
@@ -172,27 +172,6 @@ int_nodes <- network1$nodes %>%
 
 ```
 
-
-# Testing an *igraph* object
-
-This code creates and plots an *igraph* object to test that the integer edgelist 
-works properly. Figure \@ref(fig:igraph) probably doesn't look very nice but for 
-this script we just want to confirm that we are able to make a graph. Other scripts 
-in this repository have code for making better graphs.
-
-```{r igraph, fig.width=7, fig.height=4, fig.cap=FC}
-
-FC <- paste0("\\label{fig:igraph}",
-            "Plot of network ")
-
-# create an igraph object
-net1 <- graph_from_data_frame(d = int_edges,
-                              vertices = int_nodes,
-                              directed = TRUE)
-
-plot(net1)
-
-```
 
 
 # Save Data
