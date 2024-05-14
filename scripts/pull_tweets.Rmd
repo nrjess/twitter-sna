@@ -10,7 +10,7 @@ output:
     number_sections: true
     code_folding:  show
 params: 
-  outfile: "scrape_tweets.html"
+  outfile: "pull-tweets.html"
 ---
 
 # Purpose
