@@ -159,7 +159,7 @@ graph LR
   click path "https://nrjess.github.io/twitter-sna/scripts/output/path_visualization"
   click infl "https://nrjess.github.io/twitter-sna/scripts/output/influence_model"
   click sel "https://nrjess.github.io/twitter-sna/scripts/output/selection_model"
-')
+', width = 1000)
 
 ```
 
