@@ -2,6 +2,7 @@
 title: "twitter-sna: tools for social network analysis with Twitter data"
 author: "Nicole Jess, Yuqing Liu, Hasan Gokberk Bayhan, & Shimeng Dai"
 output: github_document
+always_allow_html: true
 
 ---
 
@@ -181,16 +182,49 @@ key -> sel
 data -> sent
 data -> key
 
-}", height=500) %>% 
+}", height=500) %>%
   export_svg() %>% 
   charToRaw() %>% 
   rsvg_png("flow_diagram.png")
+
+
+
 
 ```
 
 ```{r, echo=FALSE} 
 knitr::include_graphics("flow_diagram.png") 
 ```
+
+```{r}
+
+mermaid('
+graph LR
+  start-->pull[pull tweets]
+  pull-->data[create social network data]
+  sent[sentiment analysis]-->dviz[dynamic visualizations]
+  sent-->path[path visualizations]
+  sent-->infl[influence model]
+  sent-->sel[selection model]
+  key[keyword coding]-->dviz
+  key-->path
+  key-->infl
+  key-->sel
+  data-->sent
+  data-->key
+  style start fill:green shape:oval
+  click pull "https://nrjess.github.io/twitter-sna/scripts/output/pull_tweets"
+  click data "https://nrjess.github.io/twitter-sna/scripts/output/create_social_network_data"
+  click sent "https://nrjess.github.io/twitter-sna/scripts/output/sentiment_analysis"
+  click key "https://nrjess.github.io/twitter-sna/scripts/output/keyword_coding"
+  click dviz "https://nrjess.github.io/twitter-sna/scripts/output/dynamic_visualization"
+  click path "https://nrjess.github.io/twitter-sna/scripts/output/path_visualization"
+  click infl "https://nrjess.github.io/twitter-sna/scripts/output/influence_model"
+  click sel "https://nrjess.github.io/twitter-sna/scripts/output/selection_model"
+') 
+
+```
+
 
 
 
