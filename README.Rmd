@@ -196,38 +196,6 @@ data -> key
 knitr::include_graphics("flow_diagram.png") 
 ```
 
-```{r}
-
-mermaid('
-graph LR
-  start-->pull[pull tweets]
-  pull-->data[create social network data]
-  sent[sentiment analysis]-->dviz[dynamic visualizations]
-  sent-->path[path visualizations]
-  sent-->infl[influence model]
-  sent-->sel[selection model]
-  key[keyword coding]-->dviz
-  key-->path
-  key-->infl
-  key-->sel
-  data-->sent
-  data-->key
-  style start fill:green shape:oval
-  click pull "https://nrjess.github.io/twitter-sna/scripts/output/pull_tweets"
-  click data "https://nrjess.github.io/twitter-sna/scripts/output/create_social_network_data"
-  click sent "https://nrjess.github.io/twitter-sna/scripts/output/sentiment_analysis"
-  click key "https://nrjess.github.io/twitter-sna/scripts/output/keyword_coding"
-  click dviz "https://nrjess.github.io/twitter-sna/scripts/output/dynamic_visualization"
-  click path "https://nrjess.github.io/twitter-sna/scripts/output/path_visualization"
-  click infl "https://nrjess.github.io/twitter-sna/scripts/output/influence_model"
-  click sel "https://nrjess.github.io/twitter-sna/scripts/output/selection_model"
-') 
-
-```
-
-
-
-
 ## Software Information
 We use R Markdown to enhance reproducibility because it provides excellent 
 support for generating dynamic reports (Mair, 2016). Knitting the source R 

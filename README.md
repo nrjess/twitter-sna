@@ -135,38 +135,6 @@ that the required inputs have been created.
 
 <img src="flow_diagram.png" width="100%" />
 
-``` r
-
-mermaid('
-graph LR
-  start-->pull[pull tweets]
-  pull-->data[create social network data]
-  sent[sentiment analysis]-->dviz[dynamic visualizations]
-  sent-->path[path visualizations]
-  sent-->infl[influence model]
-  sent-->sel[selection model]
-  key[keyword coding]-->dviz
-  key-->path
-  key-->infl
-  key-->sel
-  data-->sent
-  data-->key
-  style start fill:green shape:oval
-  click pull "https://nrjess.github.io/twitter-sna/scripts/output/pull_tweets"
-  click data "https://nrjess.github.io/twitter-sna/scripts/output/create_social_network_data"
-  click sent "https://nrjess.github.io/twitter-sna/scripts/output/sentiment_analysis"
-  click key "https://nrjess.github.io/twitter-sna/scripts/output/keyword_coding"
-  click dviz "https://nrjess.github.io/twitter-sna/scripts/output/dynamic_visualization"
-  click path "https://nrjess.github.io/twitter-sna/scripts/output/path_visualization"
-  click infl "https://nrjess.github.io/twitter-sna/scripts/output/influence_model"
-  click sel "https://nrjess.github.io/twitter-sna/scripts/output/selection_model"
-') 
-#> PhantomJS not found. You can install it with webshot::install_phantomjs(). If it is installed, please make sure the phantomjs executable can be found via the PATH variable.
-```
-
-<div class="DiagrammeR html-widget html-fill-item" id="htmlwidget-a210840ce4c2f8fd76a1" style="width:100%;height:480px;"></div>
-<script type="application/json" data-for="htmlwidget-a210840ce4c2f8fd76a1">{"x":{"diagram":"\ngraph LR\n  start-->pull[pull tweets]\n  pull-->data[create social network data]\n  sent[sentiment analysis]-->dviz[dynamic visualizations]\n  sent-->path[path visualizations]\n  sent-->infl[influence model]\n  sent-->sel[selection model]\n  key[keyword coding]-->dviz\n  key-->path\n  key-->infl\n  key-->sel\n  data-->sent\n  data-->key\n  style start fill:green shape:oval\n  click pull \"https://nrjess.github.io/twitter-sna/scripts/output/pull_tweets\"\n  click data \"https://nrjess.github.io/twitter-sna/scripts/output/create_social_network_data\"\n  click sent \"https://nrjess.github.io/twitter-sna/scripts/output/sentiment_analysis\"\n  click key \"https://nrjess.github.io/twitter-sna/scripts/output/keyword_coding\"\n  click dviz \"https://nrjess.github.io/twitter-sna/scripts/output/dynamic_visualization\"\n  click path \"https://nrjess.github.io/twitter-sna/scripts/output/path_visualization\"\n  click infl \"https://nrjess.github.io/twitter-sna/scripts/output/influence_model\"\n  click sel \"https://nrjess.github.io/twitter-sna/scripts/output/selection_model\"\n"},"evals":[],"jsHooks":[]}</script>
-
 ## Software Information
 
 We use R Markdown to enhance reproducibility because it provides
