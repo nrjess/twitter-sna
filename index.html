@@ -2999,12 +2999,12 @@ repository obtained from GitHub.</li>
 This folder is where you can find the key files you will need to use if
 you want to run these analyses on your own computer.
 <ul>
-<li><a href="https://nrjess.github.io/twitter-sna/scripts/output/pull_tweets"><code>pull_tweets.RMD</code></a>
-This script creates a user-defined query, pulls data from Twitter, and
-saves the data to the user’s local repository.</li>
-<li><a href="https://nrjess.github.io/twitter-sna/scripts/output/create_social_network_data"><code>create_social_network_data.RMD</code></a>
-This script restructures tweet data into a format that is useful for
-social network analysis (edgelists and nodelists).</li>
+<li><code>pull_tweets.RMD</code> This script creates a user-defined
+query, pulls data from Twitter, and saves the data to the user’s local
+repository.</li>
+<li><code>create_social_network_data.RMD</code> This script restructures
+tweet data into a format that is useful for social network analysis
+(edgelists and nodelists).</li>
 <li><code>sentiment_analysis.RMD</code> This script codes tweets for
 sentiment. This example codes for positive and negative sentiments but
 tweets can be coded in many other ways.</li>
@@ -3017,8 +3017,8 @@ time.</li>
 <li><code>path_visualizations.RMD</code> This script creates a
 visualizations of paths to explore the influence of individuals in a
 dynamic network.</li>
-<li><a href="https://nrjess.github.io/twitter-sna/scripts/output/The_Influence_Model"><code>influence_model.RMD</code></a>
-This script runs an influence model.</li>
+<li><code>influence_model.RMD</code> This script runs an influence
+model.</li>
 <li><code>selection_model.RMD</code> This script runs a selection
 model.</li>
 </ul></li>
@@ -3042,9 +3042,10 @@ software.</li>
 <div id="flow-diagram" class="section level3">
 <h3>Flow Diagram</h3>
 <p>This diagram shows the sequence that scripts should be run to ensure
-that the required inputs have been created.</p>
-<div class="DiagrammeR html-widget html-fill-item" id="htmlwidget-7ba631680013476e9bd0" style="width:672px;height:480px;"></div>
-<script type="application/json" data-for="htmlwidget-7ba631680013476e9bd0">{"x":{"diagram":"\ngraph LR\n  start-->pull[pull tweets]\n  pull-->data[create social network data]\n  sent[sentiment analysis]-->dviz[dynamic visualizations]\n  sent-->path[path visualizations]\n  sent-->infl[influence model]\n  sent-->sel[selection model]\n  key[keyword coding]-->dviz\n  key-->path\n  key-->infl\n  key-->sel\n  data-->sent\n  data-->key\n  style start fill:green shape:oval\n  click pull \"https://nrjess.github.io/twitter-sna/scripts/output/pull_tweets\"\n  click data \"https://nrjess.github.io/twitter-sna/scripts/output/create_social_network_data\"\n  click sent \"https://nrjess.github.io/twitter-sna/scripts/output/sentiment_analysis\"\n  click key \"https://nrjess.github.io/twitter-sna/scripts/output/keyword_coding\"\n  click dviz \"https://nrjess.github.io/twitter-sna/scripts/output/dynamic_visualization\"\n  click path \"https://nrjess.github.io/twitter-sna/scripts/output/path_visualization\"\n  click infl \"https://nrjess.github.io/twitter-sna/scripts/output/influence_model\"\n  click sel \"https://nrjess.github.io/twitter-sna/scripts/output/selection_model\"\n"},"evals":[],"jsHooks":[]}</script>
+that the required inputs have been created. Click the boxes below to see
+the step-by-step tutorial for each script.</p>
+<div class="DiagrammeR html-widget html-fill-item" id="htmlwidget-6dcdfb7c3adda22edfca" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-6dcdfb7c3adda22edfca">{"x":{"diagram":"\ngraph LR\n  start-->pull[pull tweets]\n  pull-->data[create social network data]\n  sent[sentiment analysis]-->dviz[dynamic visualizations]\n  sent-->path[path visualizations]\n  sent-->infl[influence model]\n  sent-->sel[selection model]\n  key[keyword coding]-->dviz\n  key-->path\n  key-->infl\n  key-->sel\n  data-->sent\n  data-->key\n  style start fill:green shape:oval\n  click pull \"https://nrjess.github.io/twitter-sna/scripts/output/pull_tweets\"\n  click data \"https://nrjess.github.io/twitter-sna/scripts/output/create_social_network_data\"\n  click sent \"https://nrjess.github.io/twitter-sna/scripts/output/sentiment_analysis\"\n  click key \"https://nrjess.github.io/twitter-sna/scripts/output/keyword_coding\"\n  click dviz \"https://nrjess.github.io/twitter-sna/scripts/output/dynamic_visualization\"\n  click path \"https://nrjess.github.io/twitter-sna/scripts/output/path_visualization\"\n  click infl \"https://nrjess.github.io/twitter-sna/scripts/output/influence_model\"\n  click sel \"https://nrjess.github.io/twitter-sna/scripts/output/selection_model\"\n"},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <div id="software-information" class="section level2">
