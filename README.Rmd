@@ -20,6 +20,7 @@ knitr::opts_chunk$set(
 This GitHub repository is intended to create social network datasets based on 
 data pulled from Twitter and provide some useful tools for analysis.
 
+# Getting Started
 
 ## Obtain the Repository from GitHub
 If you use Git (Torvalds et al., 2022) and have a GitHub account, either clone
@@ -35,6 +36,57 @@ Note that the code uses relative rather than absolute folder path and
 file name references. Moving or renaming subfolders and/or files may cause
 problems. We have tested it only with the folder structure and file naming used
 in the primary repository on GitHub.
+
+
+## Access to Twitter Data
+To pull data from Twitter using the method in this repository, one must have a 
+Twitter developer account with a project that has Basic (or higher) level access. 
+To set up such a project, follow this link and set up a project with the API access
+level that is appropriate for your project: [Getting Started](https://developer.twitter.com/en/docs/twitter-api/getting-started/about-twitter-api). 
+
+
+### Storing your Twitter access tokens
+
+It is not safe to hard code your bearer token in your R script or have your 
+bearer token in your command history.
+
+Running the code below opens the .Renviron file. Add a line in the file, following 
+the format: TWITTER_BEARER=YOURBEARERTOKENHERE, replacing YOURBEARERTOKENHERE with your actual bearer token retrieved from the [Twitter developer portal](https://developer.twitter.com/en/portal/dashboard).
+
+
+```{r store-bearer-token, eval = FALSE}
+usethis::edit_r_environ()
+```
+
+Save the changes to .Renviron and close the file. Go to Session and Restart R.
+
+Now you will have a system environment variable in memory that contains your 
+bearer token. You can retrieve it as needed later using the following command:
+Sys.getenv("TWITTER_BEARER"). This should not be printed 
+
+```{r retrieve-bearer-token, eval = FALSE}
+Sys.getenv("TWITTER_BEARER")
+```
+
+
+
+## Install R Packages from CRAN
+Scripts in this repository depend on having a number of R packages 
+installed. Those packages are available from CRAN and can be installed by 
+running the following code in the R console. 
+
+```r 
+install.packages(pkgs = c("tidyverse", "httr", "jsonlite", "lubridate", "tidytext", 
+                          "ergm", "networkDynamic", "ndtv", "tsna", "linkcomm", 
+                          "igraph", "here", "knitr", "rmarkdown", "bookdown"))
+```
+
+```{r install-pkgs-from-CRAN, echo = FALSE, eval = FALSE}
+install.packages(pkgs = c("tidyverse", "httr", "jsonlite", "lubridate", "tidytext", 
+                          "ergm", "networkDynamic", "ndtv", "tsna", "linkcomm", 
+                          "igraph", "here", "knitr", "rmarkdown", "bookdown"))
+```
+
 
 
 ## Understanding the Repository Structure and Contents
@@ -139,56 +191,6 @@ data -> key
 knitr::include_graphics("flow_diagram.png") 
 ```
 
-
-## Install R Packages from CRAN
-Scripts in this repository depend on having a number of R packages 
-installed. Those packages are available from CRAN and can be installed by 
-running the following code in the R console. 
-
-```r 
-install.packages(pkgs = c("tidyverse", "academictwitteR", "rtweet", "tidytags",
-                          "textdata", "lubridate", "ergm", "networkD3", 
-                          "linkcomm", "igraph", "here", "knitr", "rmarkdown", 
-                          "bookdown"))
-```
-
-```{r install-pkgs-from-CRAN, echo = FALSE, eval = FALSE}
-install.packages(pkgs = c("tidyverse", "academictwitteR", "rtweet", "tidytags",
-                          "textdata", "lubridate", "ergm", "networkD3", 
-                          "linkcomm", "igraph", "here", "knitr", "rmarkdown", 
-                          "bookdown"))
-```
-
-
-## Access to Twitter Data
-To pull data from Twitter using the method in this repository, one must have a 
-Twitter developer account with a project that has Basic (or higher) level access. 
-To set up such a project, follow this link and set up a project with the API access
-level that is appropriate for your project: [Getting Started](https://developer.twitter.com/en/docs/twitter-api/getting-started/about-twitter-api). 
-
-
-### Storing your Twitter access tokens
-
-It is not safe to hard code your bearer token in your R script or have your 
-bearer token in your command history.
-
-Running the code below opens the .Renviron file. Add a line in the file, following 
-the format: TWITTER_BEARER=YOURBEARERTOKENHERE, replacing YOURBEARERTOKENHERE with your actual bearer token retrieved from the [Twitter developer portal](https://developer.twitter.com/en/portal/dashboard).
-
-
-```{r store-bearer-token, eval = FALSE}
-usethis::edit_r_environ()
-```
-
-Save the changes to .Renviron and close the file. Go to Session and Restart R.
-
-Now you will have a system environment variable in memory that contains your 
-bearer token. You can retrieve it as needed later using the following command:
-Sys.getenv("TWITTER_BEARER"). This should not be printed 
-
-```{r retrieve-bearer-token, eval = FALSE}
-Sys.getenv("TWITTER_BEARER")
-```
 
 
 ## Software Information
