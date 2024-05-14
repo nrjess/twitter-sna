@@ -150,7 +150,7 @@ graph LR
   key-->sel
   data-->sent
   data-->key
-  style start fill:green shape:oval
+  style start fill:#AFE1AF
   click pull "https://nrjess.github.io/twitter-sna/scripts/output/pull_tweets"
   click data "https://nrjess.github.io/twitter-sna/scripts/output/create_social_network_data"
   click sent "https://nrjess.github.io/twitter-sna/scripts/output/sentiment_analysis"
