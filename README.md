@@ -45,10 +45,10 @@ project](https://support.rstudio.com/hc/en-us/articles/200526207-Using-RStudio-P
   - [`scripts`](https://github.com/nrjess/twitter-sna/tree/main/scripts):
     This folder is where you can find the key files you will need to use
     if you want to run these analyses on your own computer.
-    - [`pull_tweets.RMD`](https://nrjess.github.io/twitter-sna/pull_tweets)
+    - [`pull_tweets.RMD`](https://nrjess.github.io/twitter-sna/scripts/pull_tweets)
       This script creates a user-defined query, pulls data from Twitter,
       and saves the data to the user’s local repository.
-    - [`create_social_network_data.RMD`](https://nrjess.github.io/twitter-sna/pull_tweets)
+    - [`create_social_network_data.RMD`](https://nrjess.github.io/twitter-sna/scripts/create_social_network_data)
       This script restructures tweet data into a format that is useful
       for social network analysis (edgelists and nodelists).
     - `sentiment_analysis.RMD` This script codes tweets for sentiment.
